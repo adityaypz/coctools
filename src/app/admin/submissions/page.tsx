@@ -10,7 +10,7 @@ interface Submission {
     description: string;
     proofLinks: string[];
     submittedBy: string | null;
-    telegramLink: string | null;
+    telegramUsername: string | null;
     status: string;
     createdAt: string;
     reviewedAt: string | null;
@@ -250,14 +250,14 @@ export default function SubmissionsPage() {
                             <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <span>Submitted: {new Date(submission.createdAt).toLocaleDateString()}</span>
                                 {submission.submittedBy && <span>By: {submission.submittedBy}</span>}
-                                {submission.telegramLink && (
+                                {submission.telegramUsername && (
                                     <a
-                                        href={submission.telegramLink}
+                                        href={`https://t.me/${submission.telegramUsername.replace('@', '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-blue-400 hover:text-blue-300"
+                                        className="rounded-full bg-blue-500/10 px-2.5 py-1 text-blue-400 hover:bg-blue-500/20 transition-colors font-medium"
                                     >
-                                        📱 Telegram
+                                        📱 {submission.telegramUsername}
                                     </a>
                                 )}
                             </div>

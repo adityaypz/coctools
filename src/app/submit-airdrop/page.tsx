@@ -10,7 +10,7 @@ export default function SubmitAirdropPage() {
         description: "",
         proofLinks: [""],
         submittedBy: "",
-        telegramLink: "",
+        telegramUsername: "",
     });
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -53,7 +53,7 @@ export default function SubmitAirdropPage() {
                 description: "",
                 proofLinks: [""],
                 submittedBy: "",
-                telegramLink: "",
+                telegramUsername: "",
             });
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to submit");
@@ -241,22 +241,28 @@ export default function SubmitAirdropPage() {
                         />
                     </div>
 
-                    {/* Optional Telegram Link */}
+                    {/* Optional Telegram Username */}
                     <div>
                         <label className="block text-sm font-semibold text-white mb-2">
-                            Your Telegram Link (Optional)
+                            Your Telegram Username (Optional)
                         </label>
                         <input
-                            type="url"
-                            value={formData.telegramLink}
-                            onChange={(e) =>
-                                setFormData({ ...formData, telegramLink: e.target.value })
-                            }
+                            type="text"
+                            value={formData.telegramUsername}
+                            onChange={(e) => {
+                                let value = e.target.value.trim();
+                                // Auto-add @ if user forgets
+                                if (value && !value.startsWith('@')) {
+                                    value = '@' + value;
+                                }
+                                setFormData({ ...formData, telegramUsername: value });
+                            }}
                             className="w-full rounded-xl border border-white/10 bg-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                            placeholder="https://t.me/yourusername (to verify real contributors)"
+                            placeholder="@username (to verify real contributors)"
+                            maxLength={33}
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            💡 Helps us identify genuine contributors
+                            💡 Enter your Telegram username (e.g., @vncturn)
                         </p>
                     </div>
                 </div>
