@@ -13,7 +13,7 @@
     "db:studio": "npx prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^7.4.0",
+    "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4.1.18",
     "cheerio": "^1.2.0",
     "fuzzball": "^2.2.3",
@@ -30,7 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "postcss": "^8",
-    "prisma": "^7.4.0",
+    "prisma": "^5.22.0",
     "tailwindcss": "^4.1.18",
     "tsx": "^4.19.2",
     "typescript": "^5"
