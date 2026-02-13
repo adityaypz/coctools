@@ -4,29 +4,9 @@
  */
 
 import "dotenv/config";
-import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 
-function getConnectionString(): string {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL not set");
-
-    if (url.startsWith("prisma+postgres://") || url.startsWith("prisma://")) {
-        try {
-            const apiKey = new URL(url).searchParams.get("api_key");
-            if (apiKey) {
-                const decoded = JSON.parse(Buffer.from(apiKey, "base64").toString("utf-8"));
-                if (decoded.databaseUrl) return decoded.databaseUrl;
-            }
-        } catch (err) {
-            console.error("Failed to decode:", err);
-        }
-    }
-    return url;
-}
-
-const adapter = new PrismaPg({ connectionString: getConnectionString() });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 // EXPANDED: Known active airdrops including lesser-known opportunities
 const KNOWN_AIRDROPS: Record<string, { details: string; endDate?: string }> = {

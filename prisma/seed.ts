@@ -1,25 +1,7 @@
 import "dotenv/config";
-import { PrismaClient } from "../src/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 
-// Decode direct URL from prisma+postgres:// connection
-function getConnectionString(): string {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL not set");
-    if (url.startsWith("prisma+postgres://") || url.startsWith("prisma://")) {
-        const apiKey = new URL(url).searchParams.get("api_key");
-        if (apiKey) {
-            try {
-                const decoded = JSON.parse(Buffer.from(apiKey, "base64").toString("utf-8"));
-                if (decoded.databaseUrl) return decoded.databaseUrl;
-            } catch { }
-        }
-    }
-    return url;
-}
-
-const adapter = new PrismaPg({ connectionString: getConnectionString() });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 // 100+ crypto/web3 tool URLs with popularity scores (100 = most popular)
 const CRYPTO_TOOLS: Array<{ url: string; popularity: number }> = [
