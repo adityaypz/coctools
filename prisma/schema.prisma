@@ -66,18 +66,20 @@ model CollectionTool {
 }
 
 model AirdropSubmission {
-  id          String   @id @default(cuid())
-  projectName String   @map("project_name")
-  projectUrl  String   @map("project_url")
-  description String   @db.Text
-  proofLinks  String[] @map("proof_links") // Array of proof URLs
-  submittedBy String?  @map("submitted_by") // Optional email/contact
-  status      String   @default("pending") // pending, approved, rejected
-  createdAt   DateTime @default(now()) @map("created_at")
-  reviewedAt  DateTime? @map("reviewed_at")
-  reviewNotes String?  @db.Text @map("review_notes")
+  id           String    @id @default(cuid())
+  projectName  String    @map("project_name")
+  projectUrl   String    @map("project_url")
+  description  String    @db.Text
+  proofLinks   String[]  @map("proof_links") // Array of proof URLs
+  submittedBy  String?   @map("submitted_by") // Optional email/contact
+  telegramLink String?   @map("telegram_link") // Optional Telegram link
+  status       String    @default("pending") // pending, approved, rejected
+  createdAt    DateTime  @default(now()) @map("created_at")
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewNotes  String?   @db.Text @map("review_notes")
   
   @@index([status])
   @@index([createdAt])
   @@map("airdrop_submissions")
 }
+

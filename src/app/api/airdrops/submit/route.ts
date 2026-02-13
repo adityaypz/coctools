@@ -11,6 +11,7 @@ const SubmissionSchema = z.object({
     description: z.string().min(20).max(2000),
     proofLinks: z.array(z.string().url()).min(1).max(5),
     submittedBy: z.string().email().optional().or(z.literal("")),
+    telegramLink: z.string().url().optional().or(z.literal("")),
 });
 
 export async function POST(req: NextRequest) {
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
                 description: data.description,
                 proofLinks: data.proofLinks,
                 submittedBy: data.submittedBy || null,
+                telegramLink: data.telegramLink || null,
                 status: "pending",
             },
         });
