@@ -44,14 +44,14 @@ export default function RootLayout({
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="text-center text-sm text-gray-500">
                 <p>
-                  © 2026 Crypto Tools Directory. Moon{" "}
+                  © 2026 Crypto Tools Directory.{" "}
                   <a
                     href="https://x.com/vncturn"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-violet-400 hover:text-violet-300 transition-colors"
                   >
-                    https://x.com/vncturn
+                    Moon
                   </a>
                 </p>
               </div>
