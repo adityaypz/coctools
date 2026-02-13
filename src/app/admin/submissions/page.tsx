@@ -60,7 +60,7 @@ export default function SubmissionsPage() {
         if (authenticated) fetchSubmissions();
     }, [statusFilter, authenticated]);
 
-    const handleReview = async (submissionId: string, action: "approve" | "reject", notes?: string) => {
+    const handleReview = async (submissionId: string, action: "approve" | "reject" | "reopen", notes?: string, endDate?: string) => {
         try {
             const res = await fetch(`/api/airdrops/submit/${submissionId}`, {
                 method: "PATCH",
@@ -68,13 +68,33 @@ export default function SubmissionsPage() {
                     "Content-Type": "application/json",
                     "x-admin-password": password,
                 },
-                body: JSON.stringify({ action, notes }),
+                body: JSON.stringify({ action, notes, endDate }),
             });
             if (!res.ok) throw new Error("Review failed");
-            setSuccess(`Submission ${action}d successfully`);
+            const data = await res.json();
+            if (action === "approve" && data.toolId) {
+                setSuccess(`✅ Submission approved! Tool created/updated. View on /airdrops`);
+            } else {
+                setSuccess(`Submission ${action}d successfully`);
+            }
             fetchSubmissions();
         } catch {
             setError(`Failed to ${action} submission`);
+        }
+    };
+
+    const handleDelete = async (submissionId: string) => {
+        if (!confirm("Are you sure you want to delete this submission?")) return;
+        try {
+            const res = await fetch(`/api/airdrops/submit/${submissionId}`, {
+                method: "DELETE",
+                headers: { "x-admin-password": password },
+            });
+            if (!res.ok) throw new Error("Delete failed");
+            setSuccess("Submission deleted successfully");
+            fetchSubmissions();
+        } catch {
+            setError("Failed to delete submission");
         }
     };
 
@@ -154,8 +174,8 @@ export default function SubmissionsPage() {
                         key={status}
                         onClick={() => setStatusFilter(status)}
                         className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${statusFilter === status
-                                ? "bg-violet-500 text-white"
-                                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            ? "bg-violet-500 text-white"
+                            : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                             }`}
                     >
                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -194,10 +214,10 @@ export default function SubmissionsPage() {
                                 </div>
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs font-bold ${submission.status === "approved"
-                                            ? "bg-emerald-500/20 text-emerald-400"
-                                            : submission.status === "rejected"
-                                                ? "bg-red-500/20 text-red-400"
-                                                : "bg-yellow-500/20 text-yellow-400"
+                                        ? "bg-emerald-500/20 text-emerald-400"
+                                        : submission.status === "rejected"
+                                            ? "bg-red-500/20 text-red-400"
+                                            : "bg-yellow-500/20 text-yellow-400"
                                         }`}
                                 >
                                     {submission.status}
@@ -235,7 +255,10 @@ export default function SubmissionsPage() {
                             {submission.status === "pending" && (
                                 <div className="flex gap-2 pt-2 border-t border-white/10">
                                     <button
-                                        onClick={() => handleReview(submission.id, "approve")}
+                                        onClick={() => {
+                                            const endDate = prompt("Airdrop end date (optional, YYYY-MM-DD):");
+                                            handleReview(submission.id, "approve", undefined, endDate || undefined);
+                                        }}
                                         className="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-400 transition-colors"
                                     >
                                         ✓ Approve
@@ -248,6 +271,24 @@ export default function SubmissionsPage() {
                                         className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-400 transition-colors"
                                     >
                                         ✗ Reject
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Actions for approved/rejected */}
+                            {submission.status !== "pending" && (
+                                <div className="flex gap-2 pt-2 border-t border-white/10">
+                                    <button
+                                        onClick={() => handleReview(submission.id, "reopen")}
+                                        className="flex-1 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-400 transition-colors"
+                                    >
+                                        🔄 Re-open
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(submission.id)}
+                                        className="flex-1 rounded-lg bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-400 transition-colors"
+                                    >
+                                        🗑️ Delete
                                     </button>
                                 </div>
                             )}
