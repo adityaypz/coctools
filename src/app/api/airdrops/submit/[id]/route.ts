@@ -151,6 +151,43 @@ export async function DELETE(
 
         const { id: submissionId } = await params;
 
+        // Get submission to find associated tool
+        const submission = await prisma.airdropSubmission.findUnique({
+            where: { id: submissionId },
+        });
+
+        if (!submission) {
+            return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+        }
+
+        // Find and update the associated Tool to remove airdrop
+        try {
+            const domain = new URL(submission.projectUrl).hostname.replace(/^www\./, "");
+
+            // Find tool by domain
+            const tool = await prisma.tool.findFirst({
+                where: { domain },
+            });
+
+            // If tool exists and has airdrop, remove it
+            if (tool && tool.hasAirdrop) {
+                await prisma.tool.update({
+                    where: { id: tool.id },
+                    data: {
+                        hasAirdrop: false,
+                        airdropDetails: null,
+                        airdropSource: null,
+                        airdropConfidence: null,
+                        airdropEndDate: null,
+                    },
+                });
+            }
+        } catch (err) {
+            console.error("Error updating tool:", err);
+            // Continue with deletion even if tool update fails
+        }
+
+        // Delete the submission
         await prisma.airdropSubmission.delete({
             where: { id: submissionId },
         });
