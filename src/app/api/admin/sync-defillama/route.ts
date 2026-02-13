@@ -6,6 +6,8 @@ import {
     matchProtocolToTool,
 } from "@/lib/apis/defillama";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
     try {
         // Check admin password
