@@ -14,35 +14,43 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const tools = await prisma.tool.findMany({
-        orderBy: [
-            { popularity: "desc" },
-            { status: "asc" },
-            { createdAt: "desc" },
-        ],
-        select: {
-            id: true,
-            name: true,
-            slug: true,
-            url: true,
-            domain: true,
-            description: true,
-            imageUrl: true,
-            faviconUrl: true,
-            categories: true,
-            tags: true,
-            status: true,
-            source: true,
-            popularity: true,
-            clicks: true,
-            hasAirdrop: true,
-            airdropDetails: true,
-            airdropEndDate: true,
-            createdAt: true,
-        },
-    });
+    try {
+        const tools = await prisma.tool.findMany({
+            orderBy: [
+                { popularity: "desc" },
+                { status: "asc" },
+                { createdAt: "desc" },
+            ],
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                url: true,
+                domain: true,
+                description: true,
+                imageUrl: true,
+                faviconUrl: true,
+                categories: true,
+                tags: true,
+                status: true,
+                source: true,
+                popularity: true,
+                clicks: true,
+                hasAirdrop: true,
+                airdropDetails: true,
+                airdropEndDate: true,
+                createdAt: true,
+            },
+        });
 
-    return NextResponse.json(tools);
+        return NextResponse.json(tools);
+    } catch (error) {
+        console.error("Database error in GET /api/admin/tools:", error);
+        return NextResponse.json(
+            { error: "Database error", details: String(error) },
+            { status: 500 }
+        );
+    }
 }
 
 // PATCH — update tool status, categories, tags, popularity
