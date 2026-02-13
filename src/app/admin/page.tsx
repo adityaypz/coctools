@@ -55,6 +55,7 @@ export default function AdminPage() {
     // Search, filter, and pagination state
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
+    const [sortBy, setSortBy] = useState<string>("newest");
     const [currentPage, setCurrentPage] = useState(1);
     const TOOLS_PER_PAGE = 10;
 
@@ -344,7 +345,7 @@ export default function AdminPage() {
         );
     }
 
-    // Filter and paginate tools
+    // Filter, sort, and paginate tools
     const filteredTools = tools.filter((tool) => {
         const matchesSearch = searchQuery === "" ||
             tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -353,9 +354,25 @@ export default function AdminPage() {
         return matchesSearch && matchesStatus;
     });
 
-    const totalPages = Math.ceil(filteredTools.length / TOOLS_PER_PAGE);
+    // Sort tools
+    const sortedTools = [...filteredTools].sort((a, b) => {
+        switch (sortBy) {
+            case "newest":
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            case "oldest":
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            case "name":
+                return a.name.localeCompare(b.name);
+            case "popularity":
+                return b.popularity - a.popularity;
+            default:
+                return 0;
+        }
+    });
+
+    const totalPages = Math.ceil(sortedTools.length / TOOLS_PER_PAGE);
     const startIndex = (currentPage - 1) * TOOLS_PER_PAGE;
-    const paginatedTools = filteredTools.slice(startIndex, startIndex + TOOLS_PER_PAGE);
+    const paginatedTools = sortedTools.slice(startIndex, startIndex + TOOLS_PER_PAGE);
 
     // ═══════════════════════════════════════════════
     // ADMIN DASHBOARD
@@ -542,7 +559,7 @@ export default function AdminPage() {
                         </div>
 
                         {/* Status Filter Tabs */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center flex-wrap">
                             {["all", "draft", "reviewed", "featured"].map((status) => (
                                 <button
                                     key={status}
@@ -555,6 +572,21 @@ export default function AdminPage() {
                                     {status.charAt(0).toUpperCase() + status.slice(1)}
                                 </button>
                             ))}
+
+                            {/* Sort Dropdown */}
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="text-xs text-gray-500">Sort by:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                                    className="rounded-lg border border-white/10 bg-gray-900/60 px-3 py-1.5 text-xs text-white outline-none focus:border-violet-500/50"
+                                >
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="name">Name (A-Z)</option>
+                                    <option value="popularity">Popularity</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
