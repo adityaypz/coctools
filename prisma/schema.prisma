@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tool {
+  id                String    @id @default(cuid())
+  name              String
+  slug              String    @unique
+  popularity        Int       @default(0)
+  clicks            Int       @default(0)
+  hasAirdrop        Boolean   @default(false) @map("has_airdrop")
+  airdropDetails    String?   @db.Text
+  airdropSource     String?   // "curated", "coinmarketcap", "defillama", etc.
+  airdropConfidence Float?    // 0.0 to 1.0
+  airdropEndDate    DateTime?
+  airdropLastCheck  DateTime?
+  defillamaSlug     String?   // DefiLlama protocol slug for API matching
+  lastDefillamaSync DateTime? // Last time synced with DefiLlama API
+  url               String
+  canonicalUrl      String?   @map("canonical_url")
+  domain            String
+  pathKey           String    @default("") @map("path_key")
+  description       String?
+  imageUrl          String?   @map("image_url")
+  faviconUrl        String?   @map("favicon_url")
+  categories        String[]  @default([])
+  tags              String[]  @default([])
+  status            String    @default("draft")
+  source            String    @default("manual")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  collectionTools CollectionTool[]
+
+  @@unique([domain, pathKey])
+  @@map("tools")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tools CollectionTool[]
+
+  @@map("collections")
+}
+
+model CollectionTool {
+  id           String     @id @default(cuid())
+  collectionId String     @map("collection_id")
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  toolId       String     @map("tool_id")
+  tool         Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, toolId])
+  @@map("collection_tools")
+}
+
+model AirdropSubmission {
+  id          String   @id @default(cuid())
+  projectName String   @map("project_name")
+  projectUrl  String   @map("project_url")
+  description String   @db.Text
+  proofLinks  String[] @map("proof_links") // Array of proof URLs
+  submittedBy String?  @map("submitted_by") // Optional email/contact
+  status      String   @default("pending") // pending, approved, rejected
+  createdAt   DateTime @default(now()) @map("created_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+  reviewNotes String?  @db.Text @map("review_notes")
+  
+  @@index([status])
+  @@index([createdAt])
+  @@map("airdrop_submissions")
+}
