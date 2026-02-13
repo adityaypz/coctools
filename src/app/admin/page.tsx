@@ -241,6 +241,35 @@ export default function AdminPage() {
         }
     };
 
+    // ── Delete Airdrop Only ─────────────────────
+    const handleDeleteAirdrop = async (toolId: string) => {
+        if (!confirm("Remove airdrop from this tool? (Tool will remain)")) return;
+        try {
+            const res = await fetch("/api/admin/tools", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-admin-password": password,
+                },
+                body: JSON.stringify({
+                    toolId,
+                    updates: {
+                        hasAirdrop: false,
+                        airdropDetails: null,
+                        airdropSource: null,
+                        airdropConfidence: null,
+                        airdropEndDate: null,
+                    },
+                }),
+            });
+            if (!res.ok) throw new Error("Failed to remove airdrop");
+            setSuccess("Airdrop removed!");
+            fetchTools();
+        } catch {
+            setError("Failed to remove airdrop");
+        }
+    };
+
     // ── Change Status ───────────────────────────
     const handleAction = async (toolId: string, action: string) => {
         const statusMap: Record<string, string> = {
@@ -775,6 +804,14 @@ export default function AdminPage() {
                                                 className="rounded-lg bg-yellow-500/10 px-3 py-1.5 text-xs font-medium text-yellow-300 hover:bg-yellow-500/20 transition-colors"
                                             >
                                                 📝 Draft
+                                            </button>
+                                        )}
+                                        {tool.hasAirdrop && (
+                                            <button
+                                                onClick={() => handleDeleteAirdrop(tool.id)}
+                                                className="rounded-lg bg-orange-500/10 px-3 py-1.5 text-xs font-medium text-orange-300 hover:bg-orange-500/20 transition-colors"
+                                            >
+                                                🎁❌ Remove Airdrop
                                             </button>
                                         )}
                                         <button
