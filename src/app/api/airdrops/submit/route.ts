@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { sendSubmissionConfirmation } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,13 @@ export async function POST(req: NextRequest) {
                 status: "pending",
             },
         });
+
+        // Send confirmation email (non-blocking)
+        if (submission.submittedBy) {
+            sendSubmissionConfirmation(submission.submittedBy, submission).catch(err =>
+                console.error("Email send failed:", err)
+            );
+        }
 
         return NextResponse.json({
             success: true,

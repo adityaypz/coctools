@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { sendApprovalNotification, sendRejectionNotification } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +110,19 @@ export async function PATCH(
                 reviewNotes: notes || null,
             },
         });
+
+        // Send email notifications (non-blocking)
+        if (updatedSubmission.submittedBy) {
+            if (action === "approve") {
+                sendApprovalNotification(updatedSubmission.submittedBy, updatedSubmission, toolId).catch(err =>
+                    console.error("Approval email failed:", err)
+                );
+            } else if (action === "reject") {
+                sendRejectionNotification(updatedSubmission.submittedBy, updatedSubmission, notes).catch(err =>
+                    console.error("Rejection email failed:", err)
+                );
+            }
+        }
 
         return NextResponse.json({
             success: true,
