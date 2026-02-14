@@ -50,7 +50,10 @@ export default function AdminPage() {
     // Airdrop management state
     const [defillamaSyncing, setDefillamaSyncing] = useState(false);
     const [defillamaStats, setDefillamaStats] = useState<any>(null);
-    const [pendingSubmissions, setPendingSubmissions] = useState(0);
+    const [pendingCount, setPendingCount] = useState(0);
+
+    // Top contributors state
+    const [topContributors, setTopContributors] = useState<{ username: string; count: number }[]>([]);
 
     // Search, filter, and pagination state
     const [searchQuery, setSearchQuery] = useState("");
@@ -98,19 +101,54 @@ export default function AdminPage() {
     }, [authenticated, fetchTools]);
 
     // Fetch pending submissions count
-    const fetchPendingSubmissions = useCallback(async () => {
-        try {
-            const res = await fetch("/api/airdrops/submit?status=pending", {
-                headers: { "x-admin-password": password },
-            });
-            if (res.ok) {
+    useEffect(() => {
+        const fetchPending = async () => {
+            if (!authenticated) return;
+            try {
+                const res = await fetch("/api/airdrops/submit", {
+                    headers: { "x-admin-password": password },
+                });
                 const data = await res.json();
-                setPendingSubmissions(data.submissions?.length || 0);
+                const pending = data.submissions?.filter((s: any) => s.status === "pending").length || 0;
+                setPendingCount(pending);
+            } catch {
+                // Silently fail
             }
-        } catch {
-            // Silently fail
-        }
-    }, [password]);
+        };
+        fetchPending();
+    }, [authenticated, password]);
+
+    // Fetch top contributors
+    useEffect(() => {
+        const fetchContributors = async () => {
+            if (!authenticated) return;
+            try {
+                const res = await fetch("/api/airdrops/submit", {
+                    headers: { "x-admin-password": password },
+                });
+                const data = await res.json();
+                const approved = data.submissions?.filter((s: any) => s.status === "approved" && s.telegramUsername) || [];
+
+                // Count submissions per username
+                const counts: Record<string, number> = {};
+                approved.forEach((s: any) => {
+                    const username = s.telegramUsername;
+                    counts[username] = (counts[username] || 0) + 1;
+                });
+
+                // Convert to array and sort
+                const sorted = Object.entries(counts)
+                    .map(([username, count]) => ({ username, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10); // Top 10
+
+                setTopContributors(sorted);
+            } catch {
+                // Silently fail
+            }
+        };
+        fetchContributors();
+    }, [authenticated, password]);
 
     // Sync DefiLlama
     const handleDefillamaSync = async () => {
@@ -136,12 +174,6 @@ export default function AdminPage() {
             setDefillamaSyncing(false);
         }
     };
-
-    useEffect(() => {
-        if (authenticated) {
-            fetchPendingSubmissions();
-        }
-    }, [authenticated, fetchPendingSubmissions]);
 
     // ── Add Single URL ──────────────────────────
     const handleAddUrl = async (e: React.FormEvent) => {
@@ -494,9 +526,9 @@ export default function AdminPage() {
                             <span>📝</span>
                             <span>Community Submissions</span>
                         </h2>
-                        {pendingSubmissions > 0 && (
+                        {pendingCount > 0 && (
                             <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">
-                                {pendingSubmissions}
+                                {pendingCount}
                             </span>
                         )}
                     </div>
@@ -511,6 +543,46 @@ export default function AdminPage() {
                     </a>
                 </div>
             </div>
+
+            {/* Top Contributors Leaderboard */}
+            {topContributors.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
+                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                        <span>🏆</span>
+                        <span>Top Contributors</span>
+                    </h2>
+                    <div className="space-y-2">
+                        {topContributors.map((contributor, index) => (
+                            <div
+                                key={contributor.username}
+                                className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-3 hover:bg-white/10 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <span className="text-lg font-bold text-gray-400">
+                                        #{index + 1}
+                                    </span>
+                                    <a
+                                        href={`https://t.me/${contributor.username.replace('@', '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="rounded-full bg-blue-500/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-500/20 transition-colors"
+                                    >
+                                        📱 {contributor.username}
+                                    </a>
+                                </div>
+                                <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm font-bold text-emerald-400">
+                                    {contributor.count} {contributor.count === 1 ? 'submission' : 'submissions'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                    {topContributors.length === 0 && (
+                        <p className="text-sm text-gray-500 text-center py-4">
+                            No contributors yet. Be the first to submit an airdrop!
+                        </p>
+                    )}
+                </div>
+            )}
 
             {/* Add Single URL */}
             <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
