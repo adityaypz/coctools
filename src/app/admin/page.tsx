@@ -545,12 +545,12 @@ export default function AdminPage() {
             </div>
 
             {/* Top Contributors Leaderboard */}
-            {topContributors.length > 0 && (
-                <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
-                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                        <span>🏆</span>
-                        <span>Top Contributors</span>
-                    </h2>
+            <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>🏆</span>
+                    <span>Top Contributors</span>
+                </h2>
+                {topContributors.length > 0 ? (
                     <div className="space-y-2">
                         {topContributors.map((contributor, index) => (
                             <div
@@ -576,13 +576,12 @@ export default function AdminPage() {
                             </div>
                         ))}
                     </div>
-                    {topContributors.length === 0 && (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                            No contributors yet. Be the first to submit an airdrop!
-                        </p>
-                    )}
-                </div>
-            )}
+                ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                        No contributors yet. Approve submissions with Telegram usernames to see the leaderboard!
+                    </p>
+                )}
+            </div>
 
             {/* Add Single URL */}
             <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
