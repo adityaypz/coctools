@@ -30,7 +30,12 @@ interface AirdropsPageClientProps {
 }
 
 export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
-    const [hoveredTool, setHoveredTool] = useState<string | null>(null);
+    const [activeTool, setActiveTool] = useState<string | null>(null);
+
+    // Toggle on tap (mobile) — keep hover for desktop
+    const handleToolInteraction = (toolId: string) => {
+        setActiveTool((prev) => (prev === toolId ? null : toolId));
+    };
 
     // Categorize airdrops by type
     const categories = {
@@ -69,7 +74,7 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
                 <div className="inline-block rounded-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 px-4 py-1.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg animate-pulse">
                     🎁 {tools.length} Active Opportunities
                 </div>
-                <h1 className="text-4xl font-bold text-white sm:text-5xl">
+                <h1 className="text-3xl font-bold text-white sm:text-5xl">
                     Crypto{" "}
                     <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent">
                         Airdrops & Incentives
@@ -151,8 +156,9 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
                                         <div
                                             key={tool.id}
                                             className="relative"
-                                            onMouseEnter={() => setHoveredTool(tool.id)}
-                                            onMouseLeave={() => setHoveredTool(null)}
+                                            onMouseEnter={() => setActiveTool(tool.id)}
+                                            onMouseLeave={() => setActiveTool(null)}
+                                            onClick={() => handleToolInteraction(tool.id)}
                                         >
                                             {/* Tool Card */}
                                             <div className="relative transition-transform hover:scale-[1.02]">
@@ -160,8 +166,8 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
                                             </div>
 
                                             {/* Popup Bubble on Hover */}
-                                            {tool.airdropDetails && hoveredTool === tool.id && (
-                                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-[calc(100%+2rem)] max-w-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                            {tool.airdropDetails && activeTool === tool.id && (
+                                                <div className="absolute left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 bottom-full mb-3 sm:w-[calc(100%+2rem)] max-w-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
                                                     <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-emerald-500/40 rounded-2xl p-5 shadow-2xl backdrop-blur-md">
                                                         {/* Arrow */}
                                                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gradient-to-br from-gray-900 to-gray-800 border-r border-b border-emerald-500/40 rotate-45"></div>
@@ -219,8 +225,8 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
 
                                             {/* Hover Hint */}
                                             {tool.airdropDetails && (
-                                                <div className={`mt-2 text-center transition-opacity ${hoveredTool === tool.id ? 'opacity-0' : 'opacity-60'}`}>
-                                                    <span className="text-xs text-emerald-400">💡 Hover for details</span>
+                                                <div className={`mt-2 text-center transition-opacity ${activeTool === tool.id ? 'opacity-0' : 'opacity-60'}`}>
+                                                    <span className="text-xs text-emerald-400">💡 Tap for details</span>
                                                 </div>
                                             )}
                                         </div>
@@ -233,14 +239,14 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
             )}
 
             {/* CTA */}
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 to-emerald-900/20 p-8 text-center backdrop-blur-sm">
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/20 to-emerald-900/20 p-6 sm:p-8 text-center backdrop-blur-sm">
                 <h3 className="text-xl font-semibold text-white mb-2">Know of an Active Airdrop?</h3>
                 <p className="text-gray-400 mb-4 leading-relaxed">
                     Help the community by suggesting new opportunities!
                     <br />
                     <span className="text-sm text-emerald-400">We especially value lesser-known but legitimate programs.</span>
                 </p>
-                <div className="flex gap-3 justify-center flex-wrap">
+                <div className="flex flex-col gap-3 sm:flex-row sm:gap-3 sm:justify-center sm:flex-wrap">
                     <Link
                         href="/"
                         className="inline-block rounded-xl bg-violet-500 px-6 py-3 text-sm font-semibold text-white hover:bg-violet-400 transition-all hover:scale-105"

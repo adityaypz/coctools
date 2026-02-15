@@ -135,7 +135,7 @@ export default function SubmissionsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Airdrop Submissions</h1>
                     <p className="text-sm text-gray-400">{submissions.length} submissions</p>
@@ -169,7 +169,7 @@ export default function SubmissionsPage() {
             )}
 
             {/* Status Filter */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
                 {["pending", "approved", "rejected", "all"].map((status) => (
                     <button
                         key={status}
@@ -201,20 +201,20 @@ export default function SubmissionsPage() {
                             className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-4"
                         >
                             {/* Header */}
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex-1 min-w-0">
                                     <h3 className="text-lg font-semibold text-white">{submission.projectName}</h3>
                                     <a
                                         href={submission.projectUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-sm text-violet-400 hover:text-violet-300"
+                                        className="text-sm text-violet-400 hover:text-violet-300 break-all"
                                     >
                                         {submission.projectUrl}
                                     </a>
                                 </div>
                                 <span
-                                    className={`rounded-full px-3 py-1 text-xs font-bold ${submission.status === "approved"
+                                    className={`self-start rounded-full px-3 py-1 text-xs font-bold shrink-0 ${submission.status === "approved"
                                         ? "bg-emerald-500/20 text-emerald-400"
                                         : submission.status === "rejected"
                                             ? "bg-red-500/20 text-red-400"
@@ -247,7 +247,7 @@ export default function SubmissionsPage() {
                             </div>
 
                             {/* Metadata */}
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-3 flex-wrap text-xs text-gray-500">
                                 <span>Submitted: {new Date(submission.createdAt).toLocaleDateString()}</span>
                                 {submission.submittedBy && <span>By: {submission.submittedBy}</span>}
                                 {submission.telegramUsername && (

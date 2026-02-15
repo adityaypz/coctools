@@ -55,8 +55,8 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <section className="text-center space-y-4 py-8">
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+      <section className="text-center space-y-4 py-6 sm:py-8">
+        <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
           <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
             Discover Developer Tools
           </span>

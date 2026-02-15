@@ -119,7 +119,7 @@ export default function SubmitAirdropPage() {
         <div className="mx-auto max-w-2xl space-y-6">
             {/* Header */}
             <div className="text-center space-y-3">
-                <h1 className="text-4xl font-bold text-white">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white">
                     Submit an{" "}
                     <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                         Airdrop

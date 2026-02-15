@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const NAV_ITEMS = [
     { href: "/", label: "Home" },
@@ -13,6 +14,24 @@ const NAV_ITEMS = [
 
 export default function Navbar() {
     const pathname = usePathname();
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [pathname]);
+
+    // Prevent body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [mobileOpen]);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/80 backdrop-blur-xl">
@@ -26,7 +45,8 @@ export default function Navbar() {
                     </span>
                 </Link>
 
-                <ul className="flex items-center gap-1">
+                {/* Desktop nav */}
+                <ul className="hidden md:flex items-center gap-1">
                     {NAV_ITEMS.map(({ href, label }) => {
                         const active = pathname === href || (href !== "/" && pathname.startsWith(href));
                         return (
@@ -44,7 +64,56 @@ export default function Navbar() {
                         );
                     })}
                 </ul>
+
+                {/* Mobile hamburger button */}
+                <button
+                    type="button"
+                    onClick={() => setMobileOpen((prev) => !prev)}
+                    className="md:hidden flex items-center justify-center h-10 w-10 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+                    aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={mobileOpen}
+                >
+                    {mobileOpen ? (
+                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    ) : (
+                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    )}
+                </button>
             </nav>
+
+            {/* Mobile menu panel */}
+            {mobileOpen && (
+                <>
+                    <div
+                        className="md:hidden fixed inset-0 top-16 z-40 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setMobileOpen(false)}
+                    />
+                    <div className="md:hidden absolute left-0 right-0 top-16 z-50 border-b border-white/10 bg-gray-950/95 backdrop-blur-xl">
+                        <ul className="flex flex-col gap-1 px-4 py-4">
+                            {NAV_ITEMS.map(({ href, label }) => {
+                                const active = pathname === href || (href !== "/" && pathname.startsWith(href));
+                                return (
+                                    <li key={href}>
+                                        <Link
+                                            href={href}
+                                            className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
+                                                ? "bg-white/10 text-white"
+                                                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                                }`}
+                                        >
+                                            {label}
+                                        </Link>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </>
+            )}
         </header>
     );
 }

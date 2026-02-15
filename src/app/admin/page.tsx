@@ -441,7 +441,7 @@ export default function AdminPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
                     <p className="text-sm text-gray-400">{tools.length} tools total</p>
@@ -659,7 +659,8 @@ export default function AdminPage() {
                         </div>
 
                         {/* Status Filter Tabs */}
-                        <div className="flex gap-2 items-center flex-wrap">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                            <div className="flex gap-2 items-center flex-wrap">
                             {["all", "draft", "reviewed", "featured"].map((status) => (
                                 <button
                                     key={status}
@@ -672,9 +673,10 @@ export default function AdminPage() {
                                     {status.charAt(0).toUpperCase() + status.slice(1)}
                                 </button>
                             ))}
+                            </div>
 
                             {/* Sort Dropdown */}
-                            <div className="ml-auto flex items-center gap-2">
+                            <div className="sm:ml-auto flex items-center gap-2">
                                 <span className="text-xs text-gray-500">Sort by:</span>
                                 <select
                                     value={sortBy}
@@ -703,7 +705,7 @@ export default function AdminPage() {
                                 key={tool.id}
                                 className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3"
                             >
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                                     <div className="flex items-center gap-3 min-w-0">
                                         {tool.faviconUrl && (
                                             <img
@@ -728,7 +730,7 @@ export default function AdminPage() {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
                                         <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-medium text-violet-400">★ {tool.popularity}</span>
                                         <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-medium text-blue-400">👆 {tool.clicks}</span>
                                         <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-gray-500">{tool.source}</span>

@@ -44,7 +44,7 @@ export default function ToolCard({
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleClick}
-            className={`group relative flex h-full min-h-[280px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-gray-900/60 p-5 transition-all duration-300 hover:border-violet-500/40 hover:bg-gray-900/80 hover:shadow-lg hover:shadow-violet-500/10 ${hasAirdrop ? 'pt-12' : ''}`}
+            className={`group relative flex h-full min-h-[220px] sm:min-h-[280px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-gray-900/60 p-4 sm:p-5 transition-all duration-300 hover:border-violet-500/40 hover:bg-gray-900/80 hover:shadow-lg hover:shadow-violet-500/10 ${hasAirdrop ? 'pt-10 sm:pt-12' : ''}`}
         >
             {/* Airdrop Badge */}
             {hasAirdrop && (
