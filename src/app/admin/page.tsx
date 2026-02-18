@@ -519,12 +519,12 @@ export default function AdminPage() {
                     </button>
                 </div>
 
-                {/* Community Submissions */}
+                {/* Airdrop Submissions */}
                 <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                             <span>📝</span>
-                            <span>Community Submissions</span>
+                            <span>Airdrop Submissions</span>
                         </h2>
                         {pendingCount > 0 && (
                             <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-white">
@@ -539,8 +539,32 @@ export default function AdminPage() {
                         href="/admin/submissions"
                         className="block w-full rounded-lg bg-violet-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-violet-400 transition-colors"
                     >
-                        Review Submissions
+                        Review Airdrop Submissions
                     </a>
+                </div>
+
+                {/* Tool Submissions */}
+                <div className="rounded-xl border border-white/10 bg-gray-900/60 p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                            <span>🛠️</span>
+                            <span>Tool Submissions</span>
+                        </h2>
+                        {tools.filter(t => t.status === "draft" && t.source === "user-submission").length > 0 && (
+                            <span className="rounded-full bg-yellow-500 px-2 py-0.5 text-xs font-bold text-white">
+                                {tools.filter(t => t.status === "draft" && t.source === "user-submission").length}
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-sm text-gray-400">
+                        Review tool submissions from users. Click &quot;Draft&quot; filter below to see them.
+                    </p>
+                    <button
+                        onClick={() => { setStatusFilter("draft"); setCurrentPage(1); }}
+                        className="block w-full rounded-lg bg-yellow-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-yellow-400 transition-colors"
+                    >
+                        Review Tool Submissions
+                    </button>
                 </div>
             </div>
 
@@ -661,18 +685,18 @@ export default function AdminPage() {
                         {/* Status Filter Tabs */}
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
                             <div className="flex gap-2 items-center flex-wrap">
-                            {["all", "draft", "reviewed", "featured"].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => { setStatusFilter(status); setCurrentPage(1); }}
-                                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === status
-                                        ? "bg-violet-500 text-white"
-                                        : "bg-white/5 text-gray-400 hover:bg-white/10"
-                                        }`}
-                                >
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </button>
-                            ))}
+                                {["all", "draft", "reviewed", "featured"].map((status) => (
+                                    <button
+                                        key={status}
+                                        onClick={() => { setStatusFilter(status); setCurrentPage(1); }}
+                                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${statusFilter === status
+                                            ? "bg-violet-500 text-white"
+                                            : "bg-white/5 text-gray-400 hover:bg-white/10"
+                                            }`}
+                                    >
+                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    </button>
+                                ))}
                             </div>
 
                             {/* Sort Dropdown */}
