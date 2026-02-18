@@ -72,17 +72,10 @@ export default function ToolCard({
                             className="h-6 w-6 object-contain"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                if (imageUrl) {
-                                    target.src = imageUrl;
-                                    target.className = "h-full w-full object-cover";
-                                } else {
-                                    target.style.display = "none";
-                                    target.parentElement!.innerHTML = `<span class="text-sm font-bold text-violet-300">${name.charAt(0).toUpperCase()}</span>`;
-                                }
+                                target.style.display = "none";
+                                target.parentElement!.innerHTML = `<span class="text-sm font-bold text-violet-300">${name.charAt(0).toUpperCase()}</span>`;
                             }}
                         />
-                    ) : imageUrl ? (
-                        <img src={imageUrl} alt="" className="h-full w-full object-cover" />
                     ) : (
                         <span className="text-sm font-bold text-violet-300">
                             {name.charAt(0).toUpperCase()}
