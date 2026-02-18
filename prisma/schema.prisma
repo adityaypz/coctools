@@ -33,6 +33,7 @@ model Tool {
   tags              String[]  @default([])
   status            String    @default("draft")
   source            String    @default("manual")
+  submittedByTelegram String?  @map("submitted_by_telegram")
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 

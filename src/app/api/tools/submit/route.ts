@@ -65,6 +65,9 @@ export async function POST(req: NextRequest) {
                 categories: [data.category],
                 status: "draft",
                 source: "user-submission",
+                submittedByTelegram: data.telegramUsername
+                    ? (data.telegramUsername.startsWith('@') ? data.telegramUsername : '@' + data.telegramUsername)
+                    : null,
             },
         });
 

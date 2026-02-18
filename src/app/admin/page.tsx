@@ -21,6 +21,7 @@ interface Tool {
     hasAirdrop: boolean;
     airdropDetails: string | null;
     airdropEndDate: string | null;
+    submittedByTelegram: string | null;
     createdAt: string;
 }
 
@@ -123,16 +124,27 @@ export default function AdminPage() {
         const fetchContributors = async () => {
             if (!authenticated) return;
             try {
-                const res = await fetch("/api/airdrops/submit", {
+                // Count airdrop submissions
+                const airdropRes = await fetch("/api/airdrops/submit", {
                     headers: { "x-admin-password": password },
                 });
-                const data = await res.json();
-                const approved = data.submissions?.filter((s: any) => s.status === "approved" && s.telegramUsername) || [];
+                const airdropData = await airdropRes.json();
+                const approvedAirdrops = airdropData.submissions?.filter((s: any) => s.status === "approved" && s.telegramUsername) || [];
 
-                // Count submissions per username
                 const counts: Record<string, number> = {};
-                approved.forEach((s: any) => {
+                approvedAirdrops.forEach((s: any) => {
                     const username = s.telegramUsername;
+                    counts[username] = (counts[username] || 0) + 1;
+                });
+
+                // Count tool submissions (approved = reviewed/featured)
+                const approvedTools = tools.filter(t =>
+                    t.source === "user-submission" &&
+                    ["reviewed", "featured"].includes(t.status) &&
+                    t.submittedByTelegram
+                );
+                approvedTools.forEach((t) => {
+                    const username = t.submittedByTelegram!;
                     counts[username] = (counts[username] || 0) + 1;
                 });
 
@@ -148,7 +160,7 @@ export default function AdminPage() {
             }
         };
         fetchContributors();
-    }, [authenticated, password]);
+    }, [authenticated, password, tools]);
 
     // Sync DefiLlama
     const handleDefillamaSync = async () => {
