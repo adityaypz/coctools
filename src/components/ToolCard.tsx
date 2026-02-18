@@ -97,11 +97,9 @@ export default function ToolCard({
                 </div>
             </div>
 
-            {description && (
-                <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-400">
-                    {description}
-                </p>
-            )}
+            <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-gray-400">
+                {description || `Visit ${domain} to learn more →`}
+            </p>
 
             <div className="mt-auto flex flex-wrap items-center gap-1.5">
                 {categories.slice(0, 3).map((cat) => (

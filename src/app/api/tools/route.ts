@@ -43,6 +43,7 @@ export async function GET(request: Request) {
             hasAirdrop: true,
             airdropDetails: true,
             airdropEndDate: true,
+            createdAt: true,
         },
     });
 

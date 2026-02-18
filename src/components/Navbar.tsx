@@ -9,7 +9,7 @@ const NAV_ITEMS = [
     { href: "/collections", label: "Collections" },
     { href: "/airdrops", label: "🎁 Airdrops" },
     { href: "/submit-airdrop", label: "📝 Submit Airdrop" },
-    { href: "/admin", label: "Admin" },
+    { href: "/submit-tool", label: "🛠️ Submit Tool" },
 ];
 
 export default function Navbar() {

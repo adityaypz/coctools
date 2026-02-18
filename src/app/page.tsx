@@ -16,12 +16,23 @@ interface Tool {
   faviconUrl: string | null;
   categories: string[];
   status: string;
+  popularity: number;
+  clicks: number;
+  createdAt: string;
 }
+
+const SORT_OPTIONS = [
+  { value: "popular", label: "🔥 Popular" },
+  { value: "newest", label: "🆕 Newest" },
+  { value: "a-z", label: "🔤 A–Z" },
+  { value: "clicks", label: "👆 Most Clicked" },
+] as const;
 
 export default function HomePage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState("popular");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +51,7 @@ export default function HomePage() {
   }, []);
 
   const filtered = useMemo(() => {
-    return tools.filter((tool) => {
+    const result = tools.filter((tool) => {
       const matchesSearch =
         !search ||
         tool.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,7 +61,21 @@ export default function HomePage() {
         !category || tool.categories.includes(category);
       return matchesSearch && matchesCategory;
     });
-  }, [tools, search, category]);
+
+    // Sort
+    return [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "a-z":
+          return a.name.localeCompare(b.name);
+        case "clicks":
+          return (b.clicks ?? 0) - (a.clicks ?? 0);
+        default: // popular
+          return (b.popularity ?? 0) - (a.popularity ?? 0);
+      }
+    });
+  }, [tools, search, category, sortBy]);
 
   return (
     <div className="space-y-8">
@@ -71,6 +96,25 @@ export default function HomePage() {
       <div className="flex flex-col items-center gap-6">
         <SearchBar value={search} onChange={setSearch} />
         <CategoryFilter selected={category} onChange={setCategory} />
+      </div>
+
+      {/* Sort */}
+      <div className="flex items-center justify-end gap-2">
+        <span className="text-xs text-gray-500">Sort by:</span>
+        <div className="flex gap-1.5">
+          {SORT_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setSortBy(value)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${sortBy === value
+                  ? "bg-violet-500 text-white shadow-lg shadow-violet-500/25"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results */}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,7 +42,8 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="border-t border-white/10 py-8 mt-20">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+              <NewsletterSignup />
               <div className="text-center text-sm text-gray-500">
                 <p>
                   © 2026 Circle Of Clown. Built by{" "}
