@@ -251,9 +251,26 @@ export default function HomePage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-20 text-center text-gray-500">
-          <p className="text-lg">No tools found.</p>
-          <p className="text-sm mt-1">Try a different search or category.</p>
+        <div className="py-16 flex flex-col items-center text-center">
+          {/* Animated empty state illustration */}
+          <div className="relative mb-6">
+            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center animate-pulse">
+              <svg className="h-12 w-12 text-violet-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-fuchsia-500/30 animate-ping" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-1">No tools found</h3>
+          <p className="text-sm text-gray-500 mb-4 max-w-xs">
+            We couldn&apos;t find any tools matching your criteria. Try adjusting your search or filters.
+          </p>
+          <button
+            onClick={() => { setSearch(""); setCategory(null); }}
+            className="rounded-full bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-400 hover:bg-violet-500/20 transition-colors"
+          >
+            ✨ Reset Filters
+          </button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -15,6 +15,15 @@ const NAV_ITEMS = [
 export default function Navbar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    // Detect scroll for glassmorphism effect
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 10);
+        handleScroll(); // check on mount
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     // Close mobile menu on route change
     useEffect(() => {
@@ -34,10 +43,13 @@ export default function Navbar() {
     }, [mobileOpen]);
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-gray-950/80 backdrop-blur-xl">
+        <header
+            className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300 ${scrolled ? "navbar-scrolled" : "navbar-top"
+                }`}
+        >
             <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight text-white">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-black">
+                <Link href="/" className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-white group">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-sm font-black shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
                         CT
                     </span>
                     <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
@@ -53,12 +65,15 @@ export default function Navbar() {
                             <li key={href}>
                                 <Link
                                     href={href}
-                                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active
-                                        ? "bg-white/10 text-white"
+                                    className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-all ${active
+                                        ? "text-white"
                                         : "text-gray-400 hover:bg-white/5 hover:text-white"
                                         }`}
                                 >
                                     {label}
+                                    {active && (
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400" />
+                                    )}
                                 </Link>
                             </li>
                         );
@@ -101,7 +116,7 @@ export default function Navbar() {
                                         <Link
                                             href={href}
                                             className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
-                                                ? "bg-white/10 text-white"
+                                                ? "bg-violet-500/10 text-violet-300 border-l-2 border-violet-400"
                                                 : "text-gray-400 hover:bg-white/5 hover:text-white"
                                                 }`}
                                         >

@@ -3,6 +3,8 @@
 :root {
   --background: #030712;
   --foreground: #f9fafb;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
 }
 
 /* Page transitions */
@@ -23,8 +25,52 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   min-height: 100vh;
+}
+
+/* Heading typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+/* ── Micro-interactions ── */
+
+/* Button press effect */
+button,
+a.btn {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+button:active,
+a.btn:active {
+  transform: scale(0.97);
+}
+
+/* Input focus glow */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15), 0 0 20px rgba(139, 92, 246, 0.1);
+  outline: none;
+}
+
+/* Navbar scroll states */
+.navbar-top {
+  background: rgba(3, 7, 18, 0.5);
+  border-bottom-color: transparent;
+}
+
+.navbar-scrolled {
+  background: rgba(3, 7, 18, 0.85);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 /* Animated gradient hero text */
