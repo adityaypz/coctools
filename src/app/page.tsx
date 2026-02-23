@@ -131,7 +131,7 @@ export default function HomePage() {
                 <a
                   key={tool.id}
                   href={`/tools/${tool.slug}`}
-                  className="group flex min-w-[200px] items-center gap-3 rounded-xl border border-white/10 bg-gray-900/60 p-3 transition-all hover:border-violet-500/40 hover:bg-gray-900/80 shrink-0"
+                  className="group flex min-w-[260px] max-w-[300px] items-center gap-3 rounded-xl border border-white/10 bg-gray-900/60 p-3 transition-all hover:border-violet-500/40 hover:bg-gray-900/80 shrink-0"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
                     {tool.faviconUrl ? (

@@ -17,6 +17,7 @@ export const CATEGORIES = [
     "NFT",
     "Trading",
     "Analytics",
+    "AI",
     "Developer Tools",
     "DAOs",
     "Bridges",
