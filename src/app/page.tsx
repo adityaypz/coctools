@@ -107,8 +107,8 @@ export default function HomePage() {
               key={value}
               onClick={() => setSortBy(value)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${sortBy === value
-                  ? "bg-violet-500 text-white shadow-lg shadow-violet-500/25"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                ? "bg-violet-500 text-white shadow-lg shadow-violet-500/25"
+                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                 }`}
             >
               {label}
@@ -116,6 +116,50 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+
+      {/* Recently Added */}
+      {!loading && !search && !category && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+            🆕 Recently Added
+          </h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {[...tools]
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 6)
+              .map((tool) => (
+                <a
+                  key={tool.id}
+                  href={`/tools/${tool.slug}`}
+                  className="group flex min-w-[200px] items-center gap-3 rounded-xl border border-white/10 bg-gray-900/60 p-3 transition-all hover:border-violet-500/40 hover:bg-gray-900/80 shrink-0"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
+                    {tool.faviconUrl ? (
+                      <img
+                        src={tool.faviconUrl}
+                        alt=""
+                        className="h-5 w-5 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span className="text-xs font-bold text-violet-300">
+                        {tool.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white group-hover:text-violet-300 transition-colors">
+                      {tool.name}
+                    </p>
+                    <p className="truncate text-xs text-gray-500">{tool.domain}</p>
+                  </div>
+                </a>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {loading ? (

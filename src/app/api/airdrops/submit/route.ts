@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { sendSubmissionConfirmation } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,15 @@ const SubmissionSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    // Rate limit: 5 submissions per 15 minutes per IP
+    const { limited, resetIn } = rateLimit(req);
+    if (limited) {
+        return NextResponse.json(
+            { error: `Too many submissions. Please try again in ${Math.ceil(resetIn / 60000)} minutes.` },
+            { status: 429 }
+        );
+    }
+
     try {
         const body = await req.json();
 

@@ -3,6 +3,7 @@
 interface ToolCardProps {
     id: string;
     name: string;
+    slug: string;
     url: string;
     domain: string;
     description?: string | null;
@@ -15,35 +16,19 @@ interface ToolCardProps {
 }
 
 export default function ToolCard({
-    id,
     name,
-    url,
+    slug,
     domain,
     description,
-    imageUrl,
     faviconUrl,
     categories,
     status,
     hasAirdrop,
     airdropDetails,
 }: ToolCardProps) {
-    const handleClick = async () => {
-        // Track click asynchronously (don't wait for response)
-        try {
-            fetch("/api/tools/track", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ toolId: id }),
-            }).catch(() => { }); // Silently fail if tracking fails
-        } catch { }
-    };
-
     return (
         <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleClick}
+            href={`/tools/${slug}`}
             className={`group relative flex h-full min-h-[220px] sm:min-h-[280px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-gray-900/60 p-4 sm:p-5 transition-all duration-300 hover:border-violet-500/40 hover:bg-gray-900/80 hover:shadow-lg hover:shadow-violet-500/10 ${hasAirdrop ? 'pt-10 sm:pt-12' : ''}`}
         >
             {/* Airdrop Badge */}

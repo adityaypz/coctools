@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { generateSlug } from "@/lib/utils";
 import { extractDomain, extractDedupeKey, normalizeUrl } from "@/lib/url-utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,15 @@ const ToolSubmissionSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    // Rate limit: 5 submissions per 15 minutes per IP
+    const { limited, resetIn } = rateLimit(req);
+    if (limited) {
+        return NextResponse.json(
+            { error: `Too many submissions. Please try again in ${Math.ceil(resetIn / 60000)} minutes.` },
+            { status: 429 }
+        );
+    }
+
     try {
         const body = await req.json();
 

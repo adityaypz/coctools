@@ -50,6 +50,7 @@ export default async function CollectionDetailPage({ params }: PageProps) {
                             key={tool.id}
                             id={tool.id}
                             name={tool.name}
+                            slug={tool.slug}
                             url={tool.url}
                             domain={tool.domain}
                             description={tool.description}
