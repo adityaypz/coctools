@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import PageTransition from "@/components/PageTransition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,7 +40,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
           <Navbar />
           <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
           <footer className="border-t border-white/10 py-8 mt-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">

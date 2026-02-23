@@ -5,6 +5,21 @@
   --foreground: #f9fafb;
 }
 
+/* Page transitions */
+.page-transition {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.page-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
