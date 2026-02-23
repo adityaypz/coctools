@@ -257,8 +257,10 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((tool) => (
-            <ToolCard key={tool.id} {...tool} />
+          {filtered.map((tool, i) => (
+            <div key={tool.id} className="animate-fade-in-up" style={{ "--i": i } as React.CSSProperties}>
+              <ToolCard {...tool} />
+            </div>
           ))}
         </div>
       )}
