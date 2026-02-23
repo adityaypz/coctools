@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryFilter from "@/components/CategoryFilter";
 import ToolCard from "@/components/ToolCard";
@@ -34,6 +34,7 @@ export default function HomePage() {
   const [category, setCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("popular");
   const [loading, setLoading] = useState(true);
+  const recentlyAddedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchTools() {
@@ -123,40 +124,56 @@ export default function HomePage() {
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
             🆕 Recently Added
           </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {[...tools]
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .slice(0, 6)
-              .map((tool) => (
-                <a
-                  key={tool.id}
-                  href={`/tools/${tool.slug}`}
-                  className="group flex min-w-[260px] max-w-[300px] items-center gap-3 rounded-xl border border-white/10 bg-gray-900/60 p-3 transition-all hover:border-violet-500/40 hover:bg-gray-900/80 shrink-0"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
-                    {tool.faviconUrl ? (
-                      <img
-                        src={tool.faviconUrl}
-                        alt=""
-                        className="h-5 w-5 object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <span className="text-xs font-bold text-violet-300">
-                        {tool.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white group-hover:text-violet-300 transition-colors">
-                      {tool.name}
-                    </p>
-                    <p className="truncate text-xs text-gray-500">{tool.domain}</p>
-                  </div>
-                </a>
-              ))}
+          <div className="relative group/scroll">
+            {/* Left Arrow */}
+            <button
+              onClick={() => recentlyAddedRef.current?.scrollBy({ left: -300, behavior: "smooth" })}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800/90 border border-white/10 text-white shadow-lg opacity-0 group-hover/scroll:opacity-100 transition-opacity hover:bg-violet-500 cursor-pointer"
+            >
+              ‹
+            </button>
+            {/* Right Arrow */}
+            <button
+              onClick={() => recentlyAddedRef.current?.scrollBy({ left: 300, behavior: "smooth" })}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gray-800/90 border border-white/10 text-white shadow-lg opacity-0 group-hover/scroll:opacity-100 transition-opacity hover:bg-violet-500 cursor-pointer"
+            >
+              ›
+            </button>
+            <div ref={recentlyAddedRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-2">
+              {[...tools]
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .slice(0, 8)
+                .map((tool) => (
+                  <a
+                    key={tool.id}
+                    href={`/tools/${tool.slug}`}
+                    className="group flex min-w-[260px] max-w-[300px] items-center gap-3 rounded-xl border border-white/10 bg-gray-900/60 p-3 transition-all hover:border-violet-500/40 hover:bg-gray-900/80 shrink-0"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20">
+                      {tool.faviconUrl ? (
+                        <img
+                          src={tool.faviconUrl}
+                          alt=""
+                          className="h-5 w-5 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-violet-300">
+                          {tool.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white group-hover:text-violet-300 transition-colors">
+                        {tool.name}
+                      </p>
+                      <p className="truncate text-xs text-gray-500">{tool.domain}</p>
+                    </div>
+                  </a>
+                ))}
+            </div>
           </div>
         </div>
       )}
