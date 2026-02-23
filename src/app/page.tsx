@@ -28,6 +28,50 @@ const SORT_OPTIONS = [
   { value: "clicks", label: "👆 Most Clicked" },
 ] as const;
 
+/* ── Animated counter hook ── */
+function useAnimatedCounter(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (target === 0) return;
+    let start = 0;
+    const startTime = performance.now();
+    function step(now: number) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      // ease-out quad
+      const eased = 1 - (1 - progress) * (1 - progress);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+      else setCount(target);
+    }
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return count;
+}
+
+/* ── Skeleton Card ── */
+function SkeletonCard() {
+  return (
+    <div className="flex h-[280px] flex-col rounded-2xl border border-white/10 bg-gray-900/60 p-5 animate-pulse">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-10 w-10 rounded-xl bg-white/10" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-3/4 rounded bg-white/10" />
+          <div className="h-3 w-1/2 rounded bg-white/5" />
+        </div>
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="h-3 w-full rounded bg-white/5" />
+        <div className="h-3 w-5/6 rounded bg-white/5" />
+        <div className="h-3 w-2/3 rounded bg-white/5" />
+      </div>
+      <div className="flex gap-2 mt-4">
+        <div className="h-6 w-16 rounded-full bg-white/5" />
+        <div className="h-6 w-20 rounded-full bg-white/5" />
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [search, setSearch] = useState("");
@@ -35,6 +79,8 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState("popular");
   const [loading, setLoading] = useState(true);
   const recentlyAddedRef = useRef<HTMLDivElement>(null);
+
+  const animatedCount = useAnimatedCounter(loading ? 0 : tools.length);
 
   useEffect(() => {
     async function fetchTools() {
@@ -81,16 +127,35 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero */}
-      <section className="text-center space-y-4 py-6 sm:py-8">
+      <section className="text-center space-y-4 py-6 sm:py-10">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
-          <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
-            Discover Developer Tools
+          <span className="hero-gradient-text">
+            Discover Crypto Tools
           </span>
         </h1>
         <p className="mx-auto max-w-xl text-gray-400">
-          A curated directory of the best tools for developers, designers, and makers.
+          A curated directory of the best tools for crypto, DeFi, and Web3.
           Search by name or filter by category.
         </p>
+        {/* Animated stats */}
+        <div className="flex items-center justify-center gap-6 pt-2">
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-bold text-white tabular-nums">
+              {animatedCount}+
+            </span>
+            <span className="text-xs text-gray-500">Tools Listed</span>
+          </div>
+          <div className="h-8 w-px bg-white/10" />
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-bold text-white">22+</span>
+            <span className="text-xs text-gray-500">Categories</span>
+          </div>
+          <div className="h-8 w-px bg-white/10" />
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-bold text-white">100%</span>
+            <span className="text-xs text-gray-500">Free</span>
+          </div>
+        </div>
       </section>
 
       {/* Search & Filter */}
@@ -180,8 +245,10 @@ export default function HomePage() {
 
       {/* Results */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-20 text-center text-gray-500">

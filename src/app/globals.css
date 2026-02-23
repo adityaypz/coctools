@@ -12,6 +12,33 @@ body {
   min-height: 100vh;
 }
 
+/* Animated gradient hero text */
+.hero-gradient-text {
+  background: linear-gradient(270deg,
+      #a78bfa,
+      #e879f9,
+      #f472b6,
+      #60a5fa,
+      #a78bfa);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 6s ease infinite;
+}
+
+@keyframes gradient-shift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 /* Animated gradient background */
 body::before {
   content: "";
