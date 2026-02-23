@@ -572,8 +572,12 @@ export default function AdminPage() {
                         Review tool submissions from users. Click &quot;Draft&quot; filter below to see them.
                     </p>
                     <button
-                        onClick={() => { setStatusFilter("draft"); setCurrentPage(1); }}
-                        className="block w-full rounded-lg bg-yellow-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-yellow-400 transition-colors"
+                        onClick={() => {
+                            setStatusFilter("draft");
+                            setCurrentPage(1);
+                            setTimeout(() => document.getElementById("tools-list")?.scrollIntoView({ behavior: "smooth" }), 100);
+                        }}
+                        className="block w-full rounded-lg bg-yellow-500 px-4 py-2 text-center text-sm font-medium text-white hover:bg-yellow-400 transition-colors cursor-pointer"
                     >
                         Review Tool Submissions
                     </button>
@@ -677,7 +681,7 @@ export default function AdminPage() {
                     <p className="text-lg">No tools yet. Add one above! 🚀</p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div id="tools-list" className="space-y-4">
                     {/* Search and Filter Bar */}
                     <div className="space-y-3">
                         {/* Search Input */}
