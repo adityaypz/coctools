@@ -108,7 +108,7 @@ const EXCLUDED_CATEGORIES = [
  * Protocols that already completed their airdrop — should not be detected.
  * Use normalized name (lowercase, alphanumeric only).
  */
-const COMPLETED_AIRDROPS = new Set([
+export const COMPLETED_AIRDROPS = new Set([
     "zksync", "zksyncerafinance", "zksyncera",
     "arbitrum", "arbitrumone",
     "optimism",

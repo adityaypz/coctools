@@ -6,6 +6,7 @@ import {
     fetchYieldPools,
     protocolToAirdropInfo,
     matchProtocolToTool,
+    COMPLETED_AIRDROPS,
 } from "@/lib/apis/defillama";
 
 export const dynamic = "force-dynamic";
@@ -166,10 +167,40 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // ── FORCE-CLEAN: Remove completed airdrops by name ──
+        // Check ALL airdrop tools against the blacklist, regardless of source
+        const forceCleanTools = tools.filter(t => {
+            if (!t.hasAirdrop) return false;
+            const nameKey = t.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const domainBase = t.domain.split(".")[0].toLowerCase();
+            return COMPLETED_AIRDROPS.has(nameKey) ||
+                COMPLETED_AIRDROPS.has(domainBase) ||
+                // Also check if name contains a blacklisted term
+                [...COMPLETED_AIRDROPS].some(bl => bl.length >= 4 && nameKey.includes(bl));
+        });
+
+        for (const tool of forceCleanTools) {
+            try {
+                await prisma.tool.update({
+                    where: { id: tool.id },
+                    data: {
+                        hasAirdrop: false,
+                        airdropDetails: null,
+                        airdropSource: null,
+                        airdropConfidence: null,
+                        airdropLastCheck: new Date(),
+                    },
+                });
+                validatedToolIds.delete(tool.id); // Don't re-validate
+                stats.cleaned++;
+                console.log(`🚫 Force-cleaned completed airdrop: ${tool.name}`);
+            } catch (error) {
+                stats.errors.push(`Force-clean error for ${tool.name}: ${error}`);
+            }
+        }
+
         // ── CLEANUP: Remove stale airdrops ──
-        // Tools that have hasAirdrop=true from auto sources (defillama, coinmarketcap, etc.)
-        // but were NOT re-validated in this sync → they no longer pass filters.
-        // Only manually curated airdrops (source='curated' or 'manual') are preserved.
+        // Tools that have hasAirdrop=true from auto sources but NOT re-validated
         const PROTECTED_SOURCES = ["curated", "manual", "user-submission"];
         const staleTools = tools.filter(t =>
             t.hasAirdrop &&
