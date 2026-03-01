@@ -175,7 +175,7 @@ export default function AdminPage() {
             const data = await res.json();
             if (data.success) {
                 setDefillamaStats(data.stats);
-                setSuccess(`✅ DefiLlama sync complete! Updated: ${data.stats.updated}, Matched: ${data.stats.matched}, Cleaned: ${data.stats.cleaned || 0}`);
+                setSuccess(`✅ DefiLlama sync complete! Updated: ${data.stats.updated}, Imported: ${data.stats.imported || 0}, Matched: ${data.stats.matched}, Cleaned: ${data.stats.cleaned || 0}`);
                 fetchTools();
             } else {
                 setError(`Sync failed: ${data.error}`);

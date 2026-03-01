@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
             matched: 0,
             updated: 0,
             cleaned: 0,
+            imported: 0,
             skipped: 0,
             errors: [] as string[],
             topDetections: [] as Array<{ name: string; confidence: number; signals: string[]; matched: boolean }>,
@@ -130,35 +131,129 @@ export async function POST(req: NextRequest) {
                     });
                 }
 
-                if (!match) {
-                    stats.skipped++;
-                    continue;
-                }
+                if (match) {
+                    // ── EXISTING TOOL: Update if confidence is higher ──
+                    stats.matched++;
+                    validatedToolIds.add(match.toolId);
 
-                stats.matched++;
-                validatedToolIds.add(match.toolId);
+                    const existingTool = tools.find(t => t.id === match.toolId);
+                    const existingConfidence = existingTool?.airdropConfidence || 0;
 
-                // Get existing tool data
-                const existingTool = tools.find(t => t.id === match.toolId);
-                const existingConfidence = existingTool?.airdropConfidence || 0;
+                    if (airdropInfo.confidence >= existingConfidence || !existingTool?.hasAirdrop) {
+                        await prisma.tool.update({
+                            where: { id: match.toolId },
+                            data: {
+                                hasAirdrop: true,
+                                airdropDetails: `${airdropInfo.description}\n\nSignals: ${airdropInfo.signals.join(" • ")}`,
+                                airdropSource: "defillama",
+                                airdropConfidence: airdropInfo.confidence,
+                                airdropLastCheck: new Date(),
+                                defillamaSlug: airdropInfo.defillamaSlug,
+                                lastDefillamaSync: new Date(),
+                            },
+                        });
 
-                // Only update if confidence is higher or no existing airdrop
-                if (airdropInfo.confidence > existingConfidence || !existingTool?.hasAirdrop) {
-                    await prisma.tool.update({
-                        where: { id: match.toolId },
-                        data: {
-                            hasAirdrop: true,
-                            airdropDetails: `${airdropInfo.description}\n\nSignals: ${airdropInfo.signals.join(" • ")}`,
-                            airdropSource: airdropInfo.source,
-                            airdropConfidence: airdropInfo.confidence,
-                            airdropLastCheck: new Date(),
-                            defillamaSlug: airdropInfo.defillamaSlug,
-                            lastDefillamaSync: new Date(),
-                        },
-                    });
+                        stats.updated++;
+                    }
+                } else {
+                    // ── NO MATCHING TOOL: Auto-create from DefiLlama protocol ──
+                    // Only create for high-confidence detections (fundraising-based)
+                    if (airdropInfo.confidence >= 0.8 && protocol.url) {
+                        try {
+                            const protocolUrl = protocol.url.startsWith("http") ? protocol.url : `https://${protocol.url}`;
+                            let domain: string;
+                            try {
+                                domain = new URL(protocolUrl).hostname.replace("www.", "");
+                            } catch {
+                                stats.skipped++;
+                                continue;
+                            }
 
-                    stats.updated++;
-                    console.log(`✅ ${match.toolName} (${(airdropInfo.confidence * 100).toFixed(0)}%) [${airdropInfo.signals.join(", ")}]`);
+                            // Check if domain already exists
+                            const existing = await prisma.tool.findFirst({
+                                where: { domain },
+                                select: { id: true },
+                            });
+
+                            if (existing) {
+                                // Tool exists with different name, update it
+                                validatedToolIds.add(existing.id);
+                                await prisma.tool.update({
+                                    where: { id: existing.id },
+                                    data: {
+                                        hasAirdrop: true,
+                                        airdropDetails: `${airdropInfo.description}\n\nSignals: ${airdropInfo.signals.join(" • ")}`,
+                                        airdropSource: "defillama",
+                                        airdropConfidence: airdropInfo.confidence,
+                                        airdropLastCheck: new Date(),
+                                        defillamaSlug: protocol.slug,
+                                        lastDefillamaSync: new Date(),
+                                    },
+                                });
+                                stats.updated++;
+                            } else {
+                                // Map DefiLlama category → CocTools categories
+                                const catMap: Record<string, string[]> = {
+                                    "Dexes": ["DeFi", "Exchanges"],
+                                    "Lending": ["DeFi", "Lending"],
+                                    "Bridge": ["Bridges"],
+                                    "CDP": ["DeFi"],
+                                    "Yield": ["DeFi", "Staking"],
+                                    "Yield Aggregator": ["DeFi"],
+                                    "Derivatives": ["DeFi", "Derivatives"],
+                                    "Liquid Staking": ["DeFi", "Staking"],
+                                    "Liquid Restaking": ["DeFi", "Staking"],
+                                    "Restaking": ["DeFi", "Staking"],
+                                    "Cross Chain": ["Bridges"],
+                                    "Perpetuals": ["DeFi", "Trading"],
+                                    "Options": ["DeFi", "Derivatives"],
+                                    "RWA": ["DeFi"],
+                                    "Leveraged Farming": ["DeFi"],
+                                    "DEX Aggregator": ["DeFi", "Exchanges"],
+                                    "NFT Marketplace": ["NFT"],
+                                    "NFT Lending": ["NFT", "Lending"],
+                                    "Gaming": ["Gaming"],
+                                    "Prediction Market": ["DeFi", "Trading"],
+                                    "Privacy": ["Infrastructure"],
+                                };
+                                const categories = catMap[protocol.category] || ["DeFi"];
+
+                                const slug = protocol.slug.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
+
+                                await prisma.tool.create({
+                                    data: {
+                                        name: protocol.name,
+                                        slug: `defillama-${slug}`,
+                                        url: protocolUrl,
+                                        domain,
+                                        description: protocol.description || `${protocol.name} - ${protocol.category} protocol`,
+                                        imageUrl: protocol.logo || null,
+                                        faviconUrl: protocol.logo || null,
+                                        categories,
+                                        tags: [protocol.category, ...protocol.chains.slice(0, 3)].filter(Boolean),
+                                        status: "reviewed",
+                                        source: "defillama-auto",
+                                        hasAirdrop: true,
+                                        airdropDetails: `${airdropInfo.description}\n\nSignals: ${airdropInfo.signals.join(" • ")}`,
+                                        airdropSource: "defillama",
+                                        airdropConfidence: airdropInfo.confidence,
+                                        airdropLastCheck: new Date(),
+                                        defillamaSlug: protocol.slug,
+                                        lastDefillamaSync: new Date(),
+                                    },
+                                });
+                                stats.imported++;
+                                console.log(`📥 Auto-imported: ${protocol.name} (${domain}) [${airdropInfo.signals.join(", ")}]`);
+                            }
+                        } catch (importError: any) {
+                            // Skip duplicate slug errors silently
+                            if (!importError.message?.includes("Unique constraint")) {
+                                stats.errors.push(`Import error for ${protocol.name}: ${importError}`);
+                            }
+                        }
+                    } else {
+                        stats.skipped++;
+                    }
                 }
             } catch (error) {
                 const errorMsg = `Error processing ${protocol.name}: ${error}`;
@@ -233,7 +328,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             stats,
-            message: `Enhanced sync: ${stats.detected} detected, ${stats.matched} matched, ${stats.updated} updated, ${stats.cleaned} cleaned from ${stats.protocolsFetched} protocols + ${stats.raisesLoaded} raises + ${stats.poolsLoaded} yield pools`,
+            message: `Sync: ${stats.detected} detected, ${stats.matched} matched, ${stats.updated} updated, ${stats.imported} imported, ${stats.cleaned} cleaned`,
         });
     } catch (error) {
         console.error("DefiLlama sync error:", error);
