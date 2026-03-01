@@ -26,11 +26,16 @@ export async function POST(request: NextRequest) {
             stats: {
                 timestamp: stats.timestamp,
                 duration: `${(stats.duration / 1000).toFixed(1)}s`,
-                scraped: stats.scraped,
+                protocolsFetched: stats.protocolsFetched,
+                raisesLoaded: stats.raisesLoaded,
+                poolsLoaded: stats.poolsLoaded,
+                defillamaDetected: stats.defillamaDetected,
+                cmcScraped: stats.cmcScraped,
                 matched: stats.matched,
                 updated: stats.updated,
                 skipped: stats.skipped,
                 errors: stats.errors,
+                topDetections: stats.topDetections.slice(0, 20),
             },
         });
     } catch (error) {
