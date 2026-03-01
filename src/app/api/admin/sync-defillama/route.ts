@@ -218,6 +218,11 @@ export async function POST(req: NextRequest) {
                                 };
                                 const categories = catMap[protocol.category] || ["DeFi"];
 
+                                // TVL-based tag
+                                const tvlTag = protocol.tvl > 10_000_000 ? "High TVL"
+                                    : protocol.tvl > 1_000_000 ? "Medium TVL"
+                                        : "Low TVL";
+
                                 const slug = protocol.slug.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
 
                                 await prisma.tool.create({
@@ -230,7 +235,7 @@ export async function POST(req: NextRequest) {
                                         imageUrl: protocol.logo || null,
                                         faviconUrl: protocol.logo || null,
                                         categories,
-                                        tags: [protocol.category, ...protocol.chains.slice(0, 3)].filter(Boolean),
+                                        tags: [tvlTag, protocol.category, ...protocol.chains.slice(0, 3)].filter(Boolean),
                                         status: "reviewed",
                                         source: "defillama-auto",
                                         hasAirdrop: true,

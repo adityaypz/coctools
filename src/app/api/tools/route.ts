@@ -11,6 +11,8 @@ export async function GET(request: Request) {
     const tools = await prisma.tool.findMany({
         where: {
             status: { in: ["reviewed", "featured"] },
+            // Exclude auto-imported airdrop-only tools from main tools listing
+            source: { not: "defillama-auto" },
             ...(search
                 ? {
                     OR: [

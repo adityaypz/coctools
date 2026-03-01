@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ToolCard from "@/components/ToolCard";
 import Link from "next/link";
 
@@ -13,6 +13,7 @@ interface Tool {
     imageUrl: string | null;
     faviconUrl: string | null;
     categories: string[];
+    tags: string[];
     status: string;
     popularity: number;
     clicks: number;
@@ -25,33 +26,47 @@ interface Tool {
     slug: string;
 }
 
+type TvlFilter = "all" | "high" | "emerging";
+
 interface AirdropsPageClientProps {
     tools: Tool[];
 }
 
 export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
     const [activeTool, setActiveTool] = useState<string | null>(null);
+    const [tvlFilter, setTvlFilter] = useState<TvlFilter>("all");
 
     // Toggle on tap (mobile) — keep hover for desktop
     const handleToolInteraction = (toolId: string) => {
         setActiveTool((prev) => (prev === toolId ? null : toolId));
     };
 
+    // Apply TVL filter
+    const filteredTools = useMemo(() => {
+        if (tvlFilter === "all") return tools;
+        if (tvlFilter === "high") return tools.filter(t => t.tags?.includes("High TVL"));
+        return tools.filter(t => t.tags?.includes("Low TVL") || t.tags?.includes("Medium TVL") || !t.tags?.some(tag => tag.includes("TVL")));
+    }, [tools, tvlFilter]);
+
+    // Counts for filter buttons
+    const highTvlCount = tools.filter(t => t.tags?.includes("High TVL")).length;
+    const emergingCount = tools.length - highTvlCount;
+
     // Categorize airdrops by type
     const categories = {
-        "Layer 2 & Chains": tools.filter(t =>
+        "Layer 2 & Chains": filteredTools.filter(t =>
             t.categories.some(c => c.toLowerCase().includes("layer 2") || c.toLowerCase().includes("blockchain"))
         ),
-        "DeFi Protocols": tools.filter(t =>
+        "DeFi Protocols": filteredTools.filter(t =>
             t.categories.some(c => c.toLowerCase().includes("defi") || c.toLowerCase().includes("dex") || c.toLowerCase().includes("lending"))
         ),
-        "NFT & Gaming": tools.filter(t =>
+        "NFT & Gaming": filteredTools.filter(t =>
             t.categories.some(c => c.toLowerCase().includes("nft") || c.toLowerCase().includes("gaming"))
         ),
-        "Infrastructure": tools.filter(t =>
+        "Infrastructure": filteredTools.filter(t =>
             t.categories.some(c => c.toLowerCase().includes("infrastructure") || c.toLowerCase().includes("oracle") || c.toLowerCase().includes("data"))
         ),
-        "Other Opportunities": tools.filter(t =>
+        "Other Opportunities": filteredTools.filter(t =>
             !t.categories.some(c =>
                 c.toLowerCase().includes("layer 2") ||
                 c.toLowerCase().includes("blockchain") ||
@@ -72,7 +87,7 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
             {/* Header */}
             <section className="space-y-4 text-center">
                 <div className="inline-block rounded-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 px-4 py-1.5 text-sm font-bold uppercase tracking-wider text-white shadow-lg animate-pulse">
-                    🎁 {tools.length} Active Opportunities
+                    🎁 {filteredTools.length} Active Opportunities
                 </div>
                 <h1 className="text-3xl font-bold text-white sm:text-5xl">
                     Crypto{" "}
@@ -90,7 +105,7 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="rounded-xl border border-white/10 bg-gray-900/60 p-4 text-center backdrop-blur-sm">
-                    <div className="text-3xl font-bold text-emerald-400">{tools.length}</div>
+                    <div className="text-3xl font-bold text-emerald-400">{filteredTools.length}</div>
                     <div className="text-sm text-gray-500">Total Active</div>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-gray-900/60 p-4 text-center backdrop-blur-sm">
@@ -104,6 +119,40 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
                 <div className="rounded-xl border border-white/10 bg-gray-900/60 p-4 text-center backdrop-blur-sm">
                     <div className="text-3xl font-bold text-pink-400">{categories["NFT & Gaming"].length + categories["Infrastructure"].length}</div>
                     <div className="text-sm text-gray-500">NFT + Infra</div>
+                </div>
+            </div>
+
+            {/* TVL Filter */}
+            <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium text-gray-400">Filter by TVL:</span>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setTvlFilter("all")}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "all"
+                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
+                            }`}
+                    >
+                        🌐 All ({tools.length})
+                    </button>
+                    <button
+                        onClick={() => setTvlFilter("high")}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "high"
+                                ? "bg-amber-500 text-white shadow-lg shadow-amber-500/25"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
+                            }`}
+                    >
+                        💰 High TVL ({highTvlCount})
+                    </button>
+                    <button
+                        onClick={() => setTvlFilter("emerging")}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "emerging"
+                                ? "bg-violet-500 text-white shadow-lg shadow-violet-500/25"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
+                            }`}
+                    >
+                        🚀 Emerging ({emergingCount})
+                    </button>
                 </div>
             </div>
 
