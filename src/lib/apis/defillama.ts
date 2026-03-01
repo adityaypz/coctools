@@ -99,6 +99,66 @@ const HIGH_AIRDROP_CATEGORIES = [
     "Liquid Restaking", "Perpetuals",
 ];
 
+/** Categories that should NEVER be flagged as airdrops */
+const EXCLUDED_CATEGORIES = [
+    "CEX", "Centralized Exchange", "Exchange",
+];
+
+/**
+ * Protocols that already completed their airdrop — should not be detected.
+ * Use normalized name (lowercase, alphanumeric only).
+ */
+const COMPLETED_AIRDROPS = new Set([
+    "zksync", "zksyncerafinance", "zksyncera",
+    "arbitrum", "arbitrumone",
+    "optimism",
+    "starknet",
+    "blur",
+    "aptos",
+    "sui",
+    "celestia",
+    "jito",
+    "jupiter",
+    "wormhole",
+    "pyth", "pythnetwork",
+    "dymension",
+    "zetachain",
+    "altlayer",
+    "manta", "mantanetwork",
+    "sei", "seinetwork",
+    "saga",
+    "ethena", "ethenalabs",
+    "ondo", "ondofinance",
+    "bonk",
+    "tensor",
+    "kamino", "kaminofinance",
+    "parcl",
+    "drift", "driftprotocol",
+    "notcoin",
+    "hamster", "hamsterkombat",
+    "dogs",
+    "catizen",
+    "scroll",
+    "blast",
+    "layerzero",
+    "eigenlayer",
+    "uniswap",
+    "1inch", "1inchnetwork",
+    "dydx",
+    "ens",
+    "looksrare",
+    "x2y2",
+    "hop", "hopprotocol",
+    "across", "acrossprotocol",
+    "connext",
+    "safe", "safeglobal",
+    "cow", "cowswap", "cowprotocol",
+    "paraswap",
+    "ribbon", "ribbonfinance",
+    "gearbox",
+    "shardeum",
+]);
+
 // ─── API Fetchers ────────────────────────────────────────────────────
 
 const FETCH_HEADERS = {
@@ -224,6 +284,32 @@ export function detectAirdropSignals(
     const hasNoToken = !protocol.gecko_id && !protocol.cmcId;
     const twoYearsAgo = Date.now() / 1000 - 2 * 365 * 24 * 60 * 60;
     const isRecent = protocol.listedAt > twoYearsAgo;
+    const nameKey = protocol.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // ── FILTER: Skip excluded categories (exchanges, CEX, wallets) ──
+    if (EXCLUDED_CATEGORIES.some(exc => exc.toLowerCase() === category)) {
+        return null;
+    }
+
+    // ── FILTER: Skip completed airdrops ──
+    if (COMPLETED_AIRDROPS.has(nameKey) || COMPLETED_AIRDROPS.has(protocol.slug)) {
+        return null;
+    }
+
+    // ── FILTER: Protocol already has a token — very strict ──
+    // If gecko_id or cmcId exists, the token is live. Only detect if
+    // description explicitly mentions a NEW airdrop/season/campaign.
+    if (!hasNoToken) {
+        const hasActiveKeyword = ["season 2", "season 3", "s2", "s3", "new airdrop", "upcoming airdrop", "points campaign"].some(
+            kw => description.includes(kw)
+        );
+        if (!hasActiveKeyword) {
+            return null; // Already has token, no active campaign mentioned
+        }
+        // Has token but active campaign → lower base confidence
+        confidence += 0.3;
+        signals.push("Active campaign (has token)");
+    }
 
     // ── Signal 1: Keyword in description ──
     const matchedKeywords = AIRDROP_KEYWORDS.filter(kw =>
@@ -236,7 +322,6 @@ export function detectAirdropSignals(
     }
 
     // ── Signal 2: Has fundraising but no token ──
-    const nameKey = protocol.name.toLowerCase().replace(/[^a-z0-9]/g, "");
     const raiseInfo = raiseLookup.get(nameKey);
     if (raiseInfo && hasNoToken) {
         if (raiseInfo.totalRaised >= 10_000_000) {
