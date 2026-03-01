@@ -102,13 +102,16 @@ const HIGH_AIRDROP_CATEGORIES = [
 /** Categories that should NEVER be flagged as airdrops */
 const EXCLUDED_CATEGORIES = [
     "CEX", "Centralized Exchange", "Exchange",
+    "Wallet", "Chain", "Infrastructure",
 ];
 
 /**
- * Protocols that already completed their airdrop — should not be detected.
+ * Protocols/tools that should NOT be flagged as airdrops.
+ * Includes: completed airdrops, exchanges, wallets, established chains.
  * Use normalized name (lowercase, alphanumeric only).
  */
 export const COMPLETED_AIRDROPS = new Set([
+    // ── Completed Airdrops ──
     "zksync", "zksyncerafinance", "zksyncera",
     "arbitrum", "arbitrumone",
     "optimism",
@@ -142,7 +145,7 @@ export const COMPLETED_AIRDROPS = new Set([
     "blast",
     "layerzero",
     "eigenlayer",
-    "uniswap",
+    "uniswap", "uniswapinterface",
     "1inch", "1inchnetwork",
     "dydx",
     "ens",
@@ -157,6 +160,53 @@ export const COMPLETED_AIRDROPS = new Set([
     "ribbon", "ribbonfinance",
     "gearbox",
     "shardeum",
+    // ── Exchanges (should never be airdrops) ──
+    "coinbase", "coinbasecom", "coinbasewallet",
+    "binance", "binancecom",
+    "kraken", "krakencom",
+    "okx", "okxcom",
+    "bybit", "bybitcom",
+    "bitget", "bitgetcom",
+    "kucoin", "kucoincom",
+    "gateio", "gate",
+    "htx", "huobi",
+    "mexc", "mexcglobal",
+    "bitfinex",
+    "gemini",
+    "cryptocom", "crypto",
+    "upbit",
+    "bithumb",
+    // ── Wallets (not airdrop protocols) ──
+    "phantom", "phantomapp", "phantomthecryptoappforeveryone",
+    "metamask", "metamaskio",
+    "trustwallet", "trust",
+    "rabby", "rabbywallet",
+    "rainbow", "rainbowme",
+    "zerion",
+    "zapper",
+    "exodus",
+    "ledger", "ledgerlive",
+    // ── Established chains/L2s with tokens ──
+    "polygon", "polygontechnology", "matic",
+    "avalanche", "avax",
+    "solana",
+    "ethereum",
+    "bnbchain", "bsc",
+    "fantom",
+    "near", "nearprotocol",
+    "cosmos", "cosmosnetwork",
+    "polkadot",
+    "cardano",
+    "tron",
+    "algorand",
+    // ── Infrastructure with tokens ──
+    "chainlink", "link",
+    "thegraph", "graph",
+    "filecoin",
+    "arweave",
+    "render", "rendernetwork",
+    "helium",
+    "livepeer",
 ]);
 
 // ─── API Fetchers ────────────────────────────────────────────────────
