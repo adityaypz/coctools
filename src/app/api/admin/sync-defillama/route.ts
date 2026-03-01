@@ -119,6 +119,11 @@ export async function POST(req: NextRequest) {
 
                 stats.detected++;
 
+                // Compute TVL tag for this protocol
+                const tvlTag = protocol.tvl > 10_000_000 ? "High TVL"
+                    : protocol.tvl > 1_000_000 ? "Medium TVL"
+                        : "Low TVL";
+
                 const match = matchProtocolToTool(protocol, tools);
 
                 // Track top detections (first 50)
@@ -140,6 +145,8 @@ export async function POST(req: NextRequest) {
                     const existingConfidence = existingTool?.airdropConfidence || 0;
 
                     if (airdropInfo.confidence >= existingConfidence || !existingTool?.hasAirdrop) {
+                        // Remove old TVL tags then add current one
+                        await prisma.$executeRaw`UPDATE tools SET tags = array_remove(array_remove(array_remove(tags, 'High TVL'), 'Medium TVL'), 'Low TVL') WHERE id = ${match.toolId}`;
                         await prisma.tool.update({
                             where: { id: match.toolId },
                             data: {
@@ -150,6 +157,7 @@ export async function POST(req: NextRequest) {
                                 airdropLastCheck: new Date(),
                                 defillamaSlug: airdropInfo.defillamaSlug,
                                 lastDefillamaSync: new Date(),
+                                tags: { push: tvlTag },
                             },
                         });
 
@@ -178,6 +186,8 @@ export async function POST(req: NextRequest) {
                             if (existing) {
                                 // Tool exists with different name, update it
                                 validatedToolIds.add(existing.id);
+                                // Remove old TVL tags then add current one
+                                await prisma.$executeRaw`UPDATE tools SET tags = array_remove(array_remove(array_remove(tags, 'High TVL'), 'Medium TVL'), 'Low TVL') WHERE id = ${existing.id}`;
                                 await prisma.tool.update({
                                     where: { id: existing.id },
                                     data: {
@@ -188,6 +198,7 @@ export async function POST(req: NextRequest) {
                                         airdropLastCheck: new Date(),
                                         defillamaSlug: protocol.slug,
                                         lastDefillamaSync: new Date(),
+                                        tags: { push: tvlTag },
                                     },
                                 });
                                 stats.updated++;

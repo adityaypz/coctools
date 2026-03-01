@@ -23,6 +23,7 @@ interface Tool {
     airdropConfidence: number | null;
     airdropEndDate: string | null;
     airdropLastCheck: string | null;
+    createdAt: string;
     slug: string;
 }
 
@@ -35,18 +36,24 @@ interface AirdropsPageClientProps {
 export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
     const [activeTool, setActiveTool] = useState<string | null>(null);
     const [tvlFilter, setTvlFilter] = useState<TvlFilter>("all");
+    const [sortBy, setSortBy] = useState<"confidence" | "newest">("confidence");
 
     // Toggle on tap (mobile) — keep hover for desktop
     const handleToolInteraction = (toolId: string) => {
         setActiveTool((prev) => (prev === toolId ? null : toolId));
     };
 
-    // Apply TVL filter
+    // Apply TVL filter + sort
     const filteredTools = useMemo(() => {
-        if (tvlFilter === "all") return tools;
-        if (tvlFilter === "high") return tools.filter(t => t.tags?.includes("High TVL"));
-        return tools.filter(t => t.tags?.includes("Low TVL") || t.tags?.includes("Medium TVL") || !t.tags?.some(tag => tag.includes("TVL")));
-    }, [tools, tvlFilter]);
+        let result = tools;
+        if (tvlFilter === "high") result = result.filter(t => t.tags?.includes("High TVL"));
+        else if (tvlFilter === "emerging") result = result.filter(t => t.tags?.includes("Low TVL") || t.tags?.includes("Medium TVL") || !t.tags?.some(tag => tag.includes("TVL")));
+
+        if (sortBy === "newest") {
+            result = [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        }
+        return result;
+    }, [tools, tvlFilter, sortBy]);
 
     // Counts for filter buttons
     const highTvlCount = tools.filter(t => t.tags?.includes("High TVL")).length;
@@ -122,37 +129,64 @@ export default function AirdropsPageClient({ tools }: AirdropsPageClientProps) {
                 </div>
             </div>
 
-            {/* TVL Filter */}
-            <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm font-medium text-gray-400">Filter by TVL:</span>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setTvlFilter("all")}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "all"
+            {/* Filters & Sort */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                {/* TVL Filter */}
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm font-medium text-gray-400">TVL:</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setTvlFilter("all")}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "all"
                                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
                                 : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
-                            }`}
-                    >
-                        🌐 All ({tools.length})
-                    </button>
-                    <button
-                        onClick={() => setTvlFilter("high")}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "high"
+                                }`}
+                        >
+                            🌐 All ({tools.length})
+                        </button>
+                        <button
+                            onClick={() => setTvlFilter("high")}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "high"
                                 ? "bg-amber-500 text-white shadow-lg shadow-amber-500/25"
                                 : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
-                            }`}
-                    >
-                        💰 High TVL ({highTvlCount})
-                    </button>
-                    <button
-                        onClick={() => setTvlFilter("emerging")}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "emerging"
+                                }`}
+                        >
+                            💰 High TVL ({highTvlCount})
+                        </button>
+                        <button
+                            onClick={() => setTvlFilter("emerging")}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${tvlFilter === "emerging"
                                 ? "bg-violet-500 text-white shadow-lg shadow-violet-500/25"
                                 : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
-                            }`}
-                    >
-                        🚀 Emerging ({emergingCount})
-                    </button>
+                                }`}
+                        >
+                            🚀 Emerging ({emergingCount})
+                        </button>
+                    </div>
+                </div>
+                {/* Sort */}
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-400">Sort:</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setSortBy("confidence")}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${sortBy === "confidence"
+                                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
+                                }`}
+                        >
+                            ⚡ Confidence
+                        </button>
+                        <button
+                            onClick={() => setSortBy("newest")}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${sortBy === "newest"
+                                ? "bg-cyan-500 text-white shadow-lg shadow-cyan-500/25"
+                                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/10"
+                                }`}
+                        >
+                            🆕 Newest
+                        </button>
+                    </div>
                 </div>
             </div>
 

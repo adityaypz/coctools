@@ -51,6 +51,7 @@ export default async function AirdropsPage() {
     // Serialize dates for client component
     const serializedTools = filteredTools.map(tool => ({
         ...tool,
+        createdAt: tool.createdAt.toISOString(),
         airdropEndDate: tool.airdropEndDate ? tool.airdropEndDate.toISOString() : null,
         airdropLastCheck: tool.airdropLastCheck ? tool.airdropLastCheck.toISOString() : null,
     }));
