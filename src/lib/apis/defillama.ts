@@ -282,11 +282,9 @@ export function detectAirdropSignals(
     const description = (protocol.description || "").toLowerCase();
     const category = (protocol.category || "").toLowerCase();
     const hasNoToken = !protocol.gecko_id && !protocol.cmcId;
-    const twoYearsAgo = Date.now() / 1000 - 2 * 365 * 24 * 60 * 60;
-    const isRecent = protocol.listedAt > twoYearsAgo;
     const nameKey = protocol.name.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    // ── FILTER: Skip excluded categories (exchanges, CEX, wallets) ──
+    // ── FILTER: Skip excluded categories (exchanges, CEX) ──
     if (EXCLUDED_CATEGORIES.some(exc => exc.toLowerCase() === category)) {
         return null;
     }
@@ -296,86 +294,80 @@ export function detectAirdropSignals(
         return null;
     }
 
-    // ── FILTER: Protocol already has a token — very strict ──
-    // If gecko_id or cmcId exists, the token is live. Only detect if
-    // description explicitly mentions a NEW airdrop/season/campaign.
+    // ── FILTER: Protocol already has a token — skip ──
+    // DefiLlama's core criteria: ONLY protocols with NO TOKEN qualify
     if (!hasNoToken) {
-        const hasActiveKeyword = ["season 2", "season 3", "s2", "s3", "new airdrop", "upcoming airdrop", "points campaign"].some(
-            kw => description.includes(kw)
-        );
-        if (!hasActiveKeyword) {
-            return null; // Already has token, no active campaign mentioned
-        }
-        // Has token but active campaign → lower base confidence
-        confidence += 0.3;
-        signals.push("Active campaign (has token)");
+        return null;
     }
 
-    // ── Signal 1: Keyword in description ──
+    // ═══════════════════════════════════════════════════════════════════
+    // PRIMARY SIGNAL (DefiLlama's exact criteria):
+    // No token + has fundraising = potential airdrop            🪂
+    // This is what DefiLlama uses for their Yield dashboard filter
+    // ═══════════════════════════════════════════════════════════════════
+    const raiseInfo = raiseLookup.get(nameKey);
+    if (raiseInfo) {
+        if (raiseInfo.totalRaised >= 10_000_000) {
+            confidence = 0.95;
+            signals.push(`🪂 No token + raised $${(raiseInfo.totalRaised / 1e6).toFixed(0)}M`);
+        } else if (raiseInfo.totalRaised >= 1_000_000) {
+            confidence = 0.90;
+            signals.push(`🪂 No token + raised $${(raiseInfo.totalRaised / 1e6).toFixed(1)}M`);
+        } else if (raiseInfo.totalRaised > 0) {
+            confidence = 0.85;
+            signals.push(`🪂 No token + raised funding`);
+        }
+
+        if (raiseInfo.valuation) {
+            signals.push(`💸 Valuation: $${(raiseInfo.valuation / 1e6).toFixed(0)}M`);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SECONDARY SIGNALS (boost confidence or qualify without fundraising)
+    // ═══════════════════════════════════════════════════════════════════
+
+    // ── Keyword signals ──
     const matchedKeywords = AIRDROP_KEYWORDS.filter(kw =>
         description.includes(kw) || category.includes(kw)
     );
     if (matchedKeywords.length > 0) {
-        const kwBoost = Math.min(matchedKeywords.length * 0.15, 0.5);
-        confidence += 0.4 + kwBoost;
+        const kwBoost = Math.min(matchedKeywords.length * 0.1, 0.3);
+        confidence = Math.max(confidence, 0.5 + kwBoost);
+        if (confidence < 0.85) confidence += kwBoost; // Boost if not already high
         signals.push(`Keywords: ${matchedKeywords.slice(0, 3).join(", ")}`);
     }
 
-    // ── Signal 2: Has fundraising but no token ──
-    const raiseInfo = raiseLookup.get(nameKey);
-    if (raiseInfo && hasNoToken) {
-        if (raiseInfo.totalRaised >= 10_000_000) {
-            confidence += 0.5;
-            signals.push(`Raised $${(raiseInfo.totalRaised / 1e6).toFixed(0)}M, no token`);
-        } else if (raiseInfo.totalRaised >= 1_000_000) {
-            confidence += 0.35;
-            signals.push(`Raised $${(raiseInfo.totalRaised / 1e6).toFixed(1)}M, no token`);
-        } else if (raiseInfo.totalRaised > 0) {
-            confidence += 0.2;
-            signals.push(`Raised funding, no token`);
-        }
-    } else if (raiseInfo && !hasNoToken) {
-        // Has token already — might still have a secondary airdrop/season
-        if (matchedKeywords.length > 0) {
-            confidence += 0.1;
-            signals.push("Has token + airdrop keywords (possible S2)");
-        }
-    }
-
-    // ── Signal 3: Yield pools with rewards but no token ──
+    // ── Yield pool signals ──
     const yieldInfo = yieldLookup.get(protocol.slug);
-    if (yieldInfo && hasNoToken && yieldInfo.hasRewardTokens) {
-        confidence += 0.3;
-        signals.push(`${yieldInfo.poolCount} yield pools with rewards, no token`);
-    } else if (yieldInfo && hasNoToken && yieldInfo.totalTvl > 1_000_000) {
-        confidence += 0.15;
-        signals.push(`$${(yieldInfo.totalTvl / 1e6).toFixed(0)}M TVL in yield pools, no token`);
+    if (yieldInfo) {
+        if (yieldInfo.hasRewardTokens) {
+            confidence = Math.max(confidence, 0.7);
+            signals.push(`${yieldInfo.poolCount} yield pools with rewards`);
+        } else if (yieldInfo.totalTvl > 1_000_000) {
+            confidence = Math.max(confidence, 0.6);
+            signals.push(`$${(yieldInfo.totalTvl / 1e6).toFixed(0)}M in yield pools`);
+        }
     }
 
-    // ── Signal 4: High-airdrop category + no token ──
-    const isHighCategory = HIGH_AIRDROP_CATEGORIES.some(
-        c => c.toLowerCase() === category
-    );
-    if (isHighCategory && hasNoToken) {
-        confidence += 0.15;
+    // ── Category boost ──
+    const isHighCategory = HIGH_AIRDROP_CATEGORIES.some(c => c.toLowerCase() === category);
+    if (isHighCategory) {
+        confidence = Math.max(confidence, 0.5);
         signals.push(`Category: ${protocol.category}`);
     }
 
-    // ── Signal 5: Recent, significant TVL, no token ──
-    if (isRecent && hasNoToken && protocol.tvl > 100_000) {
-        confidence += 0.2;
-        signals.push(`Recent protocol, $${(protocol.tvl / 1e6).toFixed(1)}M TVL, no token`);
-    } else if (hasNoToken && protocol.tvl > 10_000_000) {
-        // Older but still no token with big TVL
-        confidence += 0.25;
+    // ── TVL signals (no token + significant TVL = worth watching) ──
+    if (protocol.tvl > 10_000_000) {
+        confidence = Math.max(confidence, 0.6);
         signals.push(`$${(protocol.tvl / 1e6).toFixed(0)}M TVL, no token`);
+    } else if (protocol.tvl > 1_000_000) {
+        confidence = Math.max(confidence, 0.5);
+        signals.push(`$${(protocol.tvl / 1e6).toFixed(1)}M TVL, no token`);
     }
 
-    // ── Signal 6: Very high TVL boost ──
-    if (protocol.tvl > 100_000_000) {
-        confidence += 0.1;
-        signals.push(`TVL > $100M`);
-    }
+    // Cap confidence at 1.0
+    confidence = Math.min(confidence, 1.0);
 
     // Only return if we have at least one signal and minimum confidence
     if (signals.length === 0 || confidence < 0.3) {
