@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
             detected: 0,
             matched: 0,
             updated: 0,
+            cleaned: 0,
             skipped: 0,
             errors: [] as string[],
             topDetections: [] as Array<{ name: string; confidence: number; signals: string[]; matched: boolean }>,
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
                 domain: true,
                 airdropConfidence: true,
                 hasAirdrop: true,
+                airdropSource: true,
             },
         });
 
@@ -102,6 +104,9 @@ export async function POST(req: NextRequest) {
         // Build lookups
         const raiseLookup = buildRaiseLookup(raises);
         const yieldLookup = buildYieldLookup(pools);
+
+        // Track which tool IDs are validated by this sync
+        const validatedToolIds = new Set<string>();
 
         // Process each protocol with enhanced multi-signal detection
         for (const protocol of protocols) {
@@ -130,6 +135,7 @@ export async function POST(req: NextRequest) {
                 }
 
                 stats.matched++;
+                validatedToolIds.add(match.toolId);
 
                 // Get existing tool data
                 const existingTool = tools.find(t => t.id === match.toolId);
@@ -160,13 +166,43 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // ── CLEANUP: Remove stale airdrops ──
+        // Tools that have hasAirdrop=true from auto sources (defillama, coinmarketcap, etc.)
+        // but were NOT re-validated in this sync → they no longer pass filters.
+        // Only manually curated airdrops (source='curated' or 'manual') are preserved.
+        const PROTECTED_SOURCES = ["curated", "manual", "user-submission"];
+        const staleTools = tools.filter(t =>
+            t.hasAirdrop &&
+            !PROTECTED_SOURCES.includes(t.airdropSource || "") &&
+            !validatedToolIds.has(t.id)
+        );
+
+        for (const staleTool of staleTools) {
+            try {
+                await prisma.tool.update({
+                    where: { id: staleTool.id },
+                    data: {
+                        hasAirdrop: false,
+                        airdropDetails: null,
+                        airdropSource: null,
+                        airdropConfidence: null,
+                        airdropLastCheck: new Date(),
+                    },
+                });
+                stats.cleaned++;
+                console.log(`🧹 Cleaned stale airdrop: ${staleTool.name}`);
+            } catch (error) {
+                stats.errors.push(`Cleanup error for ${staleTool.name}: ${error}`);
+            }
+        }
+
         // Sort top detections by confidence
         stats.topDetections.sort((a, b) => b.confidence - a.confidence);
 
         return NextResponse.json({
             success: true,
             stats,
-            message: `Enhanced sync: ${stats.detected} detected, ${stats.matched} matched, ${stats.updated} updated from ${stats.protocolsFetched} protocols + ${stats.raisesLoaded} raises + ${stats.poolsLoaded} yield pools`,
+            message: `Enhanced sync: ${stats.detected} detected, ${stats.matched} matched, ${stats.updated} updated, ${stats.cleaned} cleaned from ${stats.protocolsFetched} protocols + ${stats.raisesLoaded} raises + ${stats.poolsLoaded} yield pools`,
         });
     } catch (error) {
         console.error("DefiLlama sync error:", error);
